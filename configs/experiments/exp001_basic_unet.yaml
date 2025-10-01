@@ -1,0 +1,73 @@
+name: "exp001_basic_unet"
+description: "Basic UNet training"
+tags: ["baseline", "unet"]
+
+dataset: "configs/datasets/fives_512.yaml"
+
+data:
+  batch_size: 4
+  num_workers: 2
+  pin_memory: true
+  
+  augmentation:
+    enabled: false
+  
+  preprocessing:
+    normalize: true
+    pad_to_multiple: 32
+
+model:
+  type: "UNet"
+  in_channels: 3
+  out_channels: 1
+  depths: [32, 64, 128, 256, 512]
+  final_activation: "sigmoid"
+
+training:
+  epochs: 10
+  
+  optimizer:
+    type: "adam"
+    learning_rate: 0.0001
+    weight_decay: 0.0001
+  
+  scheduler:
+    type: "cosine"
+    min_lr: 0.000001
+  
+  loss:
+    type: "dice"
+    smooth: 0.000001
+  
+  metrics:
+    - "dice"
+    - "iou"
+  
+  mixed_precision: false
+  gradient_clip: 1.0
+  
+  validation:
+    frequency: 1
+  
+  early_stopping:
+    enabled: true
+    patience: 5
+    monitor: "val_dice"
+    mode: "max"
+  
+  checkpoint:
+    save_best: true
+    save_last: true
+    monitor: "val_dice"
+    mode: "max"
+
+logging:
+  tensorboard: true
+  log_images: false
+
+output:
+  dir: "outputs/experiments/exp001_basic_unet"
+  save_predictions: true
+
+seed: 42
+device: "cuda" 
