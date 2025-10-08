@@ -2,6 +2,7 @@
 
 from .registry import register_model, get_model, list_models
 from .architectures.unet import UNet
+from .architectures.roinet import RoiNet
 
 
 def create_model(config: dict):
