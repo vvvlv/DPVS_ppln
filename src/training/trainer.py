@@ -2,9 +2,10 @@
 
 import torch
 import torch.nn as nn
+import yaml
 from pathlib import Path
 from tqdm import tqdm
-from typing import Dict
+from typing import Dict, List
 
 
 class Trainer:
@@ -28,6 +29,7 @@ class Trainer:
         self.current_epoch = 0
         self.best_metric = float('-inf')
         self.early_stop_counter = 0
+        self.metrics_history: List[Dict] = []
         
         # Create output directory
         self.output_dir = Path(config['output']['dir'])
@@ -41,6 +43,7 @@ class Trainer:
         print(f"\nStarting training for {num_epochs} epochs...")
         
         for epoch in range(num_epochs):
+            print("\n")
             self.current_epoch = epoch
             
             # Train
@@ -55,6 +58,15 @@ class Trainer:
                   ", ".join([f"{k}: {v:.4f}" for k, v in train_metrics.items() if k != 'loss']))
             print(f"  Val   - Loss: {val_metrics['val_loss']:.4f}, " +
                   ", ".join([f"{k.replace('val_', '')}: {v:.4f}" for k, v in val_metrics.items() if k != 'val_loss']))
+            
+            # Save metrics history
+            epoch_metrics = {
+                'epoch': epoch + 1,
+                'train': train_metrics,
+                'val': val_metrics
+            }
+            self.metrics_history.append(epoch_metrics)
+            self._save_metrics_history()
             
             # Checkpointing
             self._handle_checkpointing(val_metrics)
@@ -211,10 +223,29 @@ class Trainer:
         metric_name = es_cfg['monitor']
         current_metric = metrics[metric_name]
         
-        if current_metric > self.best_metric:
-            self.best_metric = current_metric
+        # Check if metric improved (best_metric is updated in _handle_checkpointing)
+        # Use a small epsilon for floating point comparison
+        if current_metric >= self.best_metric - 1e-8:
             self.early_stop_counter = 0
             return False
         else:
             self.early_stop_counter += 1
-            return self.early_stop_counter >= es_cfg['patience'] 
+            print(f"  → Early stopping: {self.early_stop_counter}/{es_cfg['patience']} (no improvement in {metric_name})")
+            return self.early_stop_counter >= es_cfg['patience']
+    
+    def _save_metrics_history(self):
+        """Save metrics history to YAML file."""
+        metrics_file = self.output_dir / 'metrics_history.yaml'
+        
+        # Convert metrics history to a serializable format
+        serializable_history = []
+        for epoch_data in self.metrics_history:
+            epoch_dict = {
+                'epoch': epoch_data['epoch'],
+                'train': {k: float(v) for k, v in epoch_data['train'].items()},
+                'val': {k: float(v) for k, v in epoch_data['val'].items()}
+            }
+            serializable_history.append(epoch_dict)
+        
+        with open(metrics_file, 'w') as f:
+            yaml.dump(serializable_history, f, default_flow_style=False, sort_keys=False) 

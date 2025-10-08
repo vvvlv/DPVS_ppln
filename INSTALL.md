@@ -16,12 +16,6 @@ cd /home/vlv/Documents/master/deepLearning/project/codebase
 pip install -r requirements.txt
 ```
 
-### Option 2: Minimal Installation
-Only essential packages for training:
-
-```bash
-pip install -r requirements-minimal.txt
-```
 
 ## Verify Installation
 
