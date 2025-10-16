@@ -2,7 +2,7 @@
 
 A clean, modular deep learning pipeline for training UNet models on fundus vessel segmentation tasks (FIVES dataset).
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # 1. Install dependencies
@@ -11,13 +11,19 @@ pip install -r requirements.txt
 # 2. Prepare your data (see Data Setup below)
 
 # 3. Train a model
-./train.sh exp001_basic_unet
+./train.sh exp001_basic_unet  # UNet baseline
+# OR
+./train.sh exp002_roinet      # RoiNet with residuals
+# OR
+./train.sh exp003_utrans      # UTrans (UNet + Transformer)
+# OR
+./train.sh exp004_transroinet # TransRoiNet (RoiNet + Transformer)
 
 # 4. Test the model
 ./test.sh exp001_basic_unet
 ```
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Features](#-features)
 - [Installation](#-installation)
@@ -31,35 +37,40 @@ pip install -r requirements.txt
 
 ---
 
-## ✨ Features
+## Features
 
 ### Core Functionality
-- ✅ **Modular Configuration System**: YAML-based dataset + experiment configs
-- ✅ **UNet Architecture**: Flexible 5-level encoder-decoder with skip connections
-- ✅ **Training Loop**: Complete with validation, metrics tracking, and progress bars
-- ✅ **Early Stopping**: Stops training when validation metrics stop improving (with patience)
-- ✅ **Metrics History**: Saves all epoch metrics to YAML for easy analysis
-- ✅ **Checkpointing**: Saves best and last model checkpoints
-- ✅ **Testing & Inference**: Load checkpoints, run predictions, save masks and metrics
+- Modular Configuration System: YAML-based dataset + experiment configs
+- Multiple Architectures: 
+  - UNet: Classic encoder-decoder
+  - RoiNet: Residual blocks with deepened bottleneck
+  - UTrans: UNet + Transformer for global context
+  - TransRoiNet: RoiNet + Transformer (best of both worlds)
+- Reusable Transformer Blocks: Modular attention components for building hybrid models
+- Training Loop: Complete with validation, metrics tracking, and progress bars
+- Early Stopping: Stops training when validation metrics stop improving (with patience)
+- Metrics History: Saves all epoch metrics to YAML for easy analysis
+- Checkpointing: Saves best and last model checkpoints
+- Testing & Inference: Load checkpoints, run predictions, save masks and metrics
 
 ### Loss Functions & Metrics
-- **Loss**: Dice Loss (smooth, differentiable)
-- **Metrics**: Dice Coefficient, IoU (Intersection over Union)
-- **Per-Image Metrics**: Individual metrics for each test image
+- Loss: Dice Loss (smooth, differentiable)
+- Metrics: Dice Coefficient, IoU (Intersection over Union)
+- Per-Image Metrics: Individual metrics for each test image
 
 ### Data Handling
-- **Dataset**: Automatic loading of images and masks
-- **Preprocessing**: Normalization, padding to multiples of 32
-- **Image Format**: Supports PNG images
+- Dataset: Automatic loading of images and masks
+- Preprocessing: Normalization, padding to multiples of 32
+- Image Format: Supports PNG images
 
 ---
 
-## 🔧 Installation
+## Installation
 
 ### Requirements
 - Python 3.8+
 - CUDA 11.8+ (for GPU support)
-- ~2.7 GB disk space for dependencies
+- ~3.5 GB disk space for dependencies
 
 ### Quick Install
 
@@ -78,7 +89,7 @@ For detailed installation instructions and troubleshooting, see [INSTALL.md](INS
 
 ---
 
-## 📁 Data Setup
+## Data Setup
 
 Place your FIVES dataset in the following structure:
 
@@ -109,7 +120,7 @@ paths:
 
 ---
 
-## 🎓 Training
+## Training
 
 ### Using Shell Script (Recommended)
 
@@ -129,16 +140,16 @@ python scripts/train.py --config configs/experiments/exp001_basic_unet.yaml
 
 ### What Happens During Training
 
-1. **Initialization**: Loads config, creates model, sets random seed
-2. **Training Loop**: 
+1. Initialization: Loads config, creates model, sets random seed
+2. Training Loop: 
    - Trains on training set with progress bar
    - Validates after each epoch
    - Prints metrics (loss, dice, IoU)
    - Saves metrics history to YAML after each epoch
-3. **Checkpointing**: 
+3. Checkpointing: 
    - Saves best model when validation metric improves
    - Saves last checkpoint every epoch
-4. **Early Stopping**: 
+4. Early Stopping: 
    - Monitors validation metric (e.g., val_dice)
    - Stops training if no improvement for N epochs (patience)
    - Displays countdown during no-improvement periods
@@ -167,7 +178,7 @@ All epoch metrics are automatically saved to `outputs/experiments/<exp_name>/met
 
 ---
 
-## 🧪 Testing & Inference
+## Testing & Inference
 
 ### Using Shell Script (Recommended)
 
@@ -187,11 +198,11 @@ python scripts/test.py --config configs/experiments/exp001_basic_unet.yaml
 
 ### What the Test Script Does
 
-1. **Loads** the trained model checkpoint (best.pth or last.pth)
-2. **Runs inference** on all test images with progress bar
-3. **Calculates metrics** for each image (Dice, IoU)
-4. **Saves predicted masks** to `outputs/tests/<exp_name>/predictions/`
-5. **Saves metrics** to YAML files:
+1. Loads the trained model checkpoint (best.pth or last.pth)
+2. Runs inference on all test images with progress bar
+3. Calculates metrics for each image (Dice, IoU)
+4. Saves predicted masks to `outputs/tests/<exp_name>/predictions/`
+5. Saves metrics to YAML files:
    - `test_metrics.yaml` - Average metrics across all test images
    - `per_image_metrics.yaml` - Individual metrics for each image
 
@@ -232,7 +243,7 @@ average_metrics:
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 The pipeline uses a **two-level configuration system**:
 
@@ -274,6 +285,13 @@ data:
   batch_size: 4
   num_workers: 2
   pin_memory: true
+  
+  augmentation:
+    enabled: false
+  
+  preprocessing:
+    normalize: true
+    pad_to_multiple: 32
 
 # Model architecture
 model:
@@ -358,7 +376,7 @@ nano configs/experiments/exp002_my_test.yaml
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 codebase/
@@ -366,7 +384,11 @@ codebase/
 │   ├── datasets/              # Dataset configurations
 │   │   └── fives_512.yaml
 │   └── experiments/           # Experiment configurations
-│       └── exp001_basic_unet.yaml
+│       ├── exp001_basic_unet.yaml
+│       ├── exp002_roinet.yaml
+│       ├── exp002_roinet_batch_size.yaml
+│       ├── exp003_utrans.yaml
+│       └── exp004_transroinet.yaml
 │
 ├── src/                       # Source code
 │   ├── data/
@@ -375,9 +397,13 @@ codebase/
 │   ├── models/
 │   │   ├── registry.py       # Model registration system
 │   │   ├── architectures/
-│   │   │   └── unet.py       # UNet implementation
+│   │   │   ├── unet.py       # UNet implementation
+│   │   │   ├── roinet.py     # RoiNet implementation
+│   │   │   ├── utrans.py     # UTrans implementation (UNet + Transformer)
+│   │   │   └── transroinet.py # TransRoiNet implementation (RoiNet + Transformer)
 │   │   └── blocks/
-│   │       └── conv_blocks.py # Building blocks
+│   │       ├── conv_blocks.py      # CNN blocks (DoubleConv, ResidualBlock)
+│   │       └── transformer_blocks.py # Transformer blocks (Self-Attention, FFN, etc.)
 │   ├── training/
 │   │   ├── trainer.py        # Training loop
 │   │   ├── losses.py         # Loss functions
@@ -406,7 +432,7 @@ codebase/
 
 ---
 
-## 📊 Output Structure
+## Output Structure
 
 ### Training Outputs
 
@@ -456,7 +482,102 @@ outputs/tests/exp001_basic_unet/
 
 ---
 
-## 🔬 Extending the Pipeline
+## Available Models
+
+### UNet
+Classic encoder-decoder architecture with skip connections:
+- Structure: 5-level pyramid with symmetric encoder-decoder
+- Building Block: DoubleConv (Conv + BN + ReLU × 2)
+- Default Depths: [32, 64, 128, 256, 512]
+- Parameters: ~7.8M
+- Best for: Standard segmentation tasks, baseline experiments
+
+### RoiNet
+Advanced architecture with residual connections and deepened bottleneck:
+- Structure: 3-level encoder-decoder with residual blocks
+- Building Block: ResidualBlock with configurable kernel size
+- Default Depths: [32, 64, 128, 128, 64, 32]
+- Kernel Size: 9 (configurable, larger receptive field)
+- Bottleneck: Deepened with 2 additional residual blocks
+- Parameters: Varies with configuration
+- Best for: Complex features, better gradient flow via residuals
+
+### UTrans 
+Hybrid CNN-Transformer architecture combining local and global features:
+- Structure: UNet encoder-decoder with Transformer bottleneck
+- Encoder/Decoder: 4-level CNN with DoubleConv blocks
+- Bottleneck: Multi-head self-attention transformer (configurable depth)
+- Default Depths: [64, 128, 256, 512, 1024]
+- Transformer Config: 4 blocks, 8 heads, MLP ratio 4.0
+- Parameters: ~100M (actual: 100,300,993)
+- Key Feature: Captures long-range dependencies while preserving local details
+- Best for: Tasks requiring global context (large vessels, complex structures)
+
+### TransRoiNet 
+Advanced hybrid combining RoiNet's residuals with Transformer attention:
+- Structure: RoiNet encoder-decoder with Transformer-enhanced bottleneck
+- Encoder/Decoder: 3-level with ResidualBlocks (k_size=9)
+- Bottleneck: Residual → Transformer → Residual → Merge
+- Default Depths: [32, 64, 128, 128, 64, 32]
+- Transformer Config: 2 blocks, 8 heads (lighter than UTrans)
+- Parameters: ~35-40M (depends on configuration)
+- Key Features: 
+  - Residual connections for stable training
+  - Transformer captures vessel connectivity patterns
+  - Large receptive field from k_size=9
+- Best for: Complex segmentation requiring both local precision and global context
+
+### Using Different Models
+
+Just change the `model.type` in your experiment config:
+
+```yaml
+# For UNet
+model:
+  type: "UNet"
+  in_channels: 3
+  out_channels: 1
+  depths: [32, 64, 128, 256, 512]
+  final_activation: "sigmoid"
+
+# For RoiNet
+model:
+  type: "RoiNet"
+  in_channels: 3
+  out_channels: 1
+  depths: [32, 64, 128, 128, 64, 32]
+  kernel_size: 9
+  final_activation: "sigmoid"
+
+# For UTrans (UNet + Transformer)
+model:
+  type: "UTrans"
+  in_channels: 3
+  out_channels: 1
+  depths: [64, 128, 256, 512, 1024]
+  transformer_depth: 4        # Number of transformer blocks
+  transformer_heads: 8        # Attention heads
+  transformer_mlp_ratio: 4.0  # FFN expansion ratio
+  transformer_dropout: 0.1    # Dropout probability
+  final_activation: "sigmoid"
+
+# For TransRoiNet (RoiNet + Transformer)
+model:
+  type: "TransRoiNet"
+  in_channels: 3
+  out_channels: 1
+  depths: [32, 64, 128, 128, 64, 32]
+  kernel_size: 9              # Large kernel for residual blocks
+  transformer_depth: 2        # Number of transformer blocks (lighter)
+  transformer_heads: 8        # Attention heads
+  transformer_mlp_ratio: 4.0  # FFN expansion ratio
+  transformer_dropout: 0.1    # Dropout probability
+  final_activation: "sigmoid"
+```
+
+---
+
+## Extending the Pipeline
 
 ### Add a New Loss Function
 
@@ -548,7 +669,7 @@ model:
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### "No images found in..."
 - Check data path in `configs/datasets/fives_512.yaml`
@@ -581,31 +702,44 @@ model:
 
 ---
 
-## 📈 Expected Performance
+## Expected Performance
 
 With default configuration on FIVES512:
 
+### UNet (exp001_basic_unet)
 | Metric | Value |
 |--------|-------|
-| **Training Time** | ~1-2 min/epoch (NVIDIA T4) |
-| **GPU Memory** | ~4-6 GB |
-| **Model Parameters** | ~7.8M |
-| **Expected Dice** | 0.70-0.80+ after 10-20 epochs |
-| **Expected IoU** | 0.60-0.70+ after 10-20 epochs |
+| Training Time | ~1-2 min/epoch (NVIDIA T4) |
+| GPU Memory | ~4-6 GB |
+| Model Parameters | ~7.8M |
+| Expected Dice | 0.70-0.80+ after 10-20 epochs |
+| Expected IoU | 0.60-0.70+ after 10-20 epochs |
+
+### RoiNet (exp002_roinet)
+| Metric | Value |
+|--------|-------|
+| Training Time | ~2-3 min/epoch (NVIDIA T4) |
+| GPU Memory | ~6-8 GB |
+| Model Parameters | Varies with config |
+| Test Dice (epoch 8) | 0.8259 |
+| Test IoU (epoch 8) | 0.7169 |
+| Validation Dice (epoch 8) | 0.8721 |
+
 
 ---
 
-## 🎯 Key Design Decisions
+## Key Design Decisions
 
-1. **Configuration-Driven**: All parameters in YAML files, no hardcoded values
-2. **Modular**: Each component is independent and replaceable
-3. **Reproducible**: Seed management, config saving, deterministic operations
-4. **Extensible**: Easy to add new models, losses, metrics
-5. **User-Friendly**: Shell scripts for common operations, clear error messages
+1. Configuration-Driven: All parameters in YAML files, no hardcoded values
+2. Modular: Each component is independent and replaceable
+3. Reproducible: Seed management, config saving, deterministic operations
+4. Extensible: Easy to add new models, losses, metrics via registry pattern
+5. User-Friendly: Shell scripts for common operations, clear error messages
+6. Multiple Architectures: Support for both classic (UNet) and advanced (RoiNet) models
 
 ---
 
-## 📝 Citation
+## Citation
 
 If you use this pipeline, please cite the FIVES dataset:
 
@@ -619,7 +753,7 @@ If you use this pipeline, please cite the FIVES dataset:
 
 ---
 
-## 📧 Support
+## Support
 
 For issues, questions, or contributions:
 1. Check this README and INSTALL.md first
@@ -628,5 +762,3 @@ For issues, questions, or contributions:
 4. Verify data paths and formats
 
 ---
-
-**Happy Training! 🚀**

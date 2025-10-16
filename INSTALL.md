@@ -27,7 +27,7 @@ python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA av
 
 Expected output (with NVIDIA T4):
 ```
-PyTorch: 2.1.0
+PyTorch: 2.8.0
 CUDA available: True
 CUDA version: 11.8
 GPU: Tesla T4
@@ -36,12 +36,12 @@ GPU: Tesla T4
 ## Package Breakdown
 
 ### Core Dependencies (Required)
-- **torch** (2.1.0) - Deep learning framework
-- **torchvision** (0.16.0) - Vision utilities
-- **numpy** (1.24.3) - Numerical computing
-- **opencv-python** (4.8.1.78) - Image processing
-- **pyyaml** (6.0.1) - Configuration files
-- **tqdm** (4.66.1) - Progress bars
+- **torch** (2.8.0) - Deep learning framework
+- **torchvision** (0.23.0) - Vision utilities
+- **numpy** (1.24.0+) - Numerical computing
+- **opencv-python** (4.8.0+) - Image processing
+- **pyyaml** (6.0+) - Configuration files
+- **tqdm** (4.65.0+) - Progress bars
 
 ### Optional Dependencies
 - **matplotlib** (3.8.0) - Plotting and visualization
@@ -60,19 +60,19 @@ Uncomment in `requirements.txt` if needed:
 
 If you have a different CUDA version, install PyTorch accordingly:
 
-**CUDA 11.7:**
+**CUDA 11.8:**
 ```bash
-pip install torch==2.1.0+cu117 torchvision==0.16.0+cu117 --index-url https://download.pytorch.org/whl/cu117
+pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu118
 ```
 
 **CUDA 12.1:**
 ```bash
-pip install torch==2.1.0+cu121 torchvision==0.16.0+cu121 --index-url https://download.pytorch.org/whl/cu121
+pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu121
 ```
 
 **CPU Only:**
 ```bash
-pip install torch==2.1.0+cpu torchvision==0.16.0+cpu --index-url https://download.pytorch.org/whl/cpu
+pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
 ```
 
 ### OpenCV Issues
@@ -118,10 +118,10 @@ conda create -n vessel_seg python=3.10
 conda activate vessel_seg
 
 # Install PyTorch with conda
-conda install pytorch==2.1.0 torchvision==0.16.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+conda install pytorch==2.8.0 torchvision==0.23.0 pytorch-cuda=11.8 -c pytorch -c nvidia
 
 # Install other packages
-pip install pyyaml==6.0.1 opencv-python==4.8.1.78 tqdm==4.66.1 matplotlib==3.8.0
+pip install pyyaml>=6.0 opencv-python>=4.8.0 tqdm>=4.65.0
 
 # Deactivate when done
 conda deactivate
@@ -151,16 +151,16 @@ print(f'  CUDA: {torch.cuda.is_available()}')
 ## Next Steps
 
 After successful installation:
-1. Read `QUICK_START.md` for usage
+1. Read `README.md` for detailed usage
 2. Prepare your dataset
-3. Run your first training: `./train.sh exp001_basic_unet`
+3. Run your first training: `./train.sh exp001_basic_unet` (UNet) or `./train.sh exp002_roinet` (RoiNet)
 
 ## Package Sizes (Approximate)
 
-- torch + torchvision: ~2.5 GB
-- numpy: ~15 MB
+- torch + torchvision: ~3.0 GB
+- numpy: ~20 MB
 - opencv-python: ~90 MB
 - Other packages: ~50 MB
-- **Total**: ~2.7 GB
+- **Total**: ~3.5 GB
 
 Ensure you have sufficient disk space! 

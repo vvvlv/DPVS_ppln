@@ -9,7 +9,7 @@ venv/
 *.egg-info/
 
 # Data and outputs
-data/
+/data/
 outputs/
 *.pth
 *.ckpt

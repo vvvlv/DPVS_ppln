@@ -1,11 +1,15 @@
-name: "exp002_roinet"
+name: "exp002_roinet_batch_size"
 description: "RoiNet with residual blocks and deepened bottleneck"
 tags: ["roinet", "residual", "baseline"]
+
+output:
+  dir: "outputs/experiments/exp002_roinet_batch_size"
+  save_predictions: true
 
 dataset: "configs/datasets/fives_512.yaml"
 
 data:
-  batch_size: 3
+  batch_size: 2
   num_workers: 2
   pin_memory: true
   
@@ -66,9 +70,6 @@ logging:
   tensorboard: true
   log_images: false
 
-output:
-  dir: "outputs/experiments/exp002_roinet"
-  save_predictions: true
 
 seed: 42
 device: "cuda"

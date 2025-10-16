@@ -3,6 +3,8 @@
 from .registry import register_model, get_model, list_models
 from .architectures.unet import UNet
 from .architectures.roinet import RoiNet
+from .architectures.utrans import UTrans
+from .architectures.transroinet import TransRoiNet
 
 
 def create_model(config: dict):

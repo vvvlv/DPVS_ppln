@@ -1,11 +1,11 @@
-name: "exp002_roinet"
-description: "RoiNet with residual blocks and deepened bottleneck"
-tags: ["roinet", "residual", "baseline"]
+name: "exp004_transroinet_lite"
+description: "TransRoiNet Lite: Memory-optimized version with smaller channels and single transformer block"
+tags: ["transroinet", "transformer", "residual", "hybrid", "lite"]
 
 dataset: "configs/datasets/fives_512.yaml"
 
 data:
-  batch_size: 3
+  batch_size: 1  # Reduced to minimum for memory constraints
   num_workers: 2
   pin_memory: true
   
@@ -17,11 +17,18 @@ data:
     pad_to_multiple: 32
 
 model:
-  type: "RoiNet"
+  type: "TransRoiNet"
   in_channels: 3
   out_channels: 1
-  depths: [32, 64, 128, 128, 64, 32]  # RoiNet default channel progression
-  kernel_size: 9                       # Larger kernel for residual blocks
+  depths: [16, 32, 64, 64, 32, 16]  # Reduced by 50% from original [32, 64, 128, 128, 64, 32]
+  kernel_size: 5                     # Reduced from 9 to 5 (less memory, still good receptive field)
+  
+  # Transformer configuration (minimal for memory)
+  transformer_depth: 1               # Single transformer block (reduced from 2)
+  transformer_heads: 4               # Reduced from 8 to 4 heads
+  transformer_mlp_ratio: 2.0         # Reduced from 4.0 to 2.0 (smaller FFN)
+  transformer_dropout: 0.1
+  
   final_activation: "sigmoid"
 
 training:
@@ -67,7 +74,7 @@ logging:
   log_images: false
 
 output:
-  dir: "outputs/experiments/exp002_roinet"
+  dir: "outputs/experiments/exp004_transroinet_lite"
   save_predictions: true
 
 seed: 42

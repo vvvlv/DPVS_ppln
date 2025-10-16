@@ -1,11 +1,11 @@
-name: "exp002_roinet"
-description: "RoiNet with residual blocks and deepened bottleneck"
-tags: ["roinet", "residual", "baseline"]
+name: "exp003_utrans"
+description: "UTrans: UNet with Transformer bottleneck for global context"
+tags: ["utrans", "transformer", "hybrid", "baseline"]
 
 dataset: "configs/datasets/fives_512.yaml"
 
 data:
-  batch_size: 3
+  batch_size: 2  # Smaller batch due to transformer memory requirements
   num_workers: 2
   pin_memory: true
   
@@ -17,11 +17,17 @@ data:
     pad_to_multiple: 32
 
 model:
-  type: "RoiNet"
+  type: "UTrans"
   in_channels: 3
   out_channels: 1
-  depths: [32, 64, 128, 128, 64, 32]  # RoiNet default channel progression
-  kernel_size: 9                       # Larger kernel for residual blocks
+  depths: [64, 128, 256, 512, 1024]  # Standard UNet channel progression
+  
+  # Transformer configuration
+  transformer_depth: 4              # Number of transformer blocks in bottleneck
+  transformer_heads: 8              # Number of attention heads
+  transformer_mlp_ratio: 4.0        # FFN hidden dim = 4 * embed_dim
+  transformer_dropout: 0.1          # Dropout probability
+  
   final_activation: "sigmoid"
 
 training:
@@ -29,7 +35,7 @@ training:
   
   optimizer:
     type: "adam"
-    learning_rate: 0.0001
+    learning_rate: 0.0001           # Same as other models
     weight_decay: 0.0001
   
   scheduler:
@@ -67,8 +73,9 @@ logging:
   log_images: false
 
 output:
-  dir: "outputs/experiments/exp002_roinet"
+  dir: "outputs/experiments/exp003_utrans"
   save_predictions: true
 
 seed: 42
 device: "cuda"
+
