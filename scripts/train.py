@@ -48,7 +48,12 @@ def main(config_path: str):
     
     # Create model
     print("\nCreating model...")
-    device = torch.device(config['device'] if torch.cuda.is_available() else 'cpu')
+    if config['device'].startswith('cuda') and torch.cuda.is_available():
+        device = torch.device(config['device'])
+    elif config['device'].startswith('mps') and getattr(torch.backends, 'mps', None) is not None and torch.backends.mps.is_available():
+        device = torch.device('mps')
+    else:
+        device = torch.device('cpu')
     model = create_model(config)
     print(f"  Model: {config['model']['type']}")
     print(f"  Parameters: {count_parameters(model):,}")
