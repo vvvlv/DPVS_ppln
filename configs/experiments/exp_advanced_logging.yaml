@@ -1,15 +1,15 @@
-name: "exp002_roinet_batch_size"
-description: "RoiNet with residual blocks and deepened bottleneck"
-tags: ["roinet", "residual", "baseline"]
-
-output:
-  dir: "outputs/experiments/exp002_roinet_batch_size"
-  save_predictions: true
+name: "exp_advanced_logging"
+description: "Example experiment with AUC metric and activation logging"
+tags: ["advanced", "auc", "activations", "full-logging"]
 
 dataset: "configs/datasets/fives_512.yaml"
 
+output:
+  dir: "outputs/experiments/exp_advanced_logging"
+  save_predictions: true
+  
 data:
-  batch_size: 2
+  batch_size: 4
   num_workers: 2
   pin_memory: true
   
@@ -21,11 +21,10 @@ data:
     pad_to_multiple: 32
 
 model:
-  type: "RoiNet"
+  type: "UNet"
   in_channels: 3
   out_channels: 1
-  depths: [32, 64, 128, 128, 64, 32]  # RoiNet default channel progression
-  kernel_size: 9                       # Larger kernel for residual blocks
+  depths: [32, 64, 128, 256, 512]
   final_activation: "sigmoid"
 
 training:
@@ -47,6 +46,7 @@ training:
   metrics:
     - "dice"
     - "iou"
+    - "auc"          # ⭐ NEW: AUC metric enabled
   
   mixed_precision: false
   gradient_clip: 1.0
@@ -68,14 +68,22 @@ training:
 
 logging:
   tensorboard: true
-  log_images: false
-  image_log_frequency: 1              # Log images every N epochs (if log_images: true)
+  log_images: true
+  image_log_frequency: 5              # Log images every 5 epochs
   
-  # Advanced logging options
-  log_activations: false              # Enable to monitor layer activations
-  activation_log_frequency: 1         # Log activations every N epochs (if log_activations: true)
-  activation_layers: "auto"           # "auto" for model defaults, list for custom, null for all
+  # ⭐ NEW: Activation logging configuration
+  log_activations: true               # Enable activation logging
+  activation_log_frequency: 5         # Log activations every 5 epochs
+  activation_layers: "auto"           # Use model-specific default layers
+  # Alternative: specify custom layers
+  # activation_layers:
+  #   - "encoder1"
+  #   - "encoder2"
+  #   - "bottleneck"
+  #   - "decoder1"
+
 
 
 seed: 42
 device: "cuda"
+

@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from utils.config import load_config
 from utils.helpers import set_seed, count_parameters
+from utils.tensorboard_logger import TensorBoardLogger
 from data import create_dataloaders
 from models import create_model
 from training.trainer import Trainer
@@ -59,9 +60,20 @@ def main(config_path: str):
     print(f"  Parameters: {count_parameters(model):,}")
     print(f"  Device: {device}")
     
+    # Initialize TensorBoard logger if enabled
+    tb_logger = None
+    if config.get('logging', {}).get('tensorboard', False):
+        tb_log_dir = output_dir / 'tensorboard'
+        tb_logger = TensorBoardLogger(str(tb_log_dir), enabled=True)
+    
     # Create trainer and train
-    trainer = Trainer(model, train_loader, val_loader, config, device)
-    trainer.train()
+    try:
+        trainer = Trainer(model, train_loader, val_loader, config, device, tb_logger)
+        trainer.train()
+    finally:
+        # Ensure TensorBoard logger is properly closed
+        if tb_logger is not None:
+            tb_logger.close()
     
     print(f"\n✓ Results saved to: {output_dir}")
 
@@ -76,4 +88,4 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     
-    main(args.config) 
+    main(args.config)

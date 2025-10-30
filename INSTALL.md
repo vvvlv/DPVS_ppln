@@ -42,15 +42,14 @@ GPU: Tesla T4
 - **opencv-python** (4.8.0+) - Image processing
 - **pyyaml** (6.0+) - Configuration files
 - **tqdm** (4.65.0+) - Progress bars
+- **tensorboard** (2.14.0+) - Training visualization
 
 ### Optional Dependencies
 - **matplotlib** (3.8.0) - Plotting and visualization
 - **pillow** (10.1.0) - Image handling
 - **scikit-image** (0.22.0) - Image processing utilities
 
-### Development Tools (Commented out)
-Uncomment in `requirements.txt` if needed:
-- **tensorboard** - Training visualization
+### Development Tools (Optional)
 - **jupyter** - Interactive notebooks
 - **ipython** - Enhanced Python shell
 
@@ -154,12 +153,14 @@ After successful installation:
 1. Read `README.md` for detailed usage
 2. Prepare your dataset
 3. Run your first training: `./train.sh exp001_basic_unet` (UNet) or `./train.sh exp002_roinet` (RoiNet)
+4. (Optional) Start TensorBoard to visualize training: `tensorboard --logdir outputs/experiments`
 
 ## Package Sizes (Approximate)
 
 - torch + torchvision: ~3.0 GB
 - numpy: ~20 MB
 - opencv-python: ~90 MB
+- tensorboard: ~5 MB
 - Other packages: ~50 MB
 - **Total**: ~3.5 GB
 

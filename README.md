@@ -30,6 +30,7 @@ pip install -r requirements.txt
 - [Data Setup](#-data-setup)
 - [Training](#-training)
 - [Testing & Inference](#-testing--inference)
+- [TensorBoard Visualization](#-tensorboard-visualization)
 - [Configuration](#-configuration)
 - [Project Structure](#-project-structure)
 - [Output Structure](#-output-structure)
@@ -48,6 +49,7 @@ pip install -r requirements.txt
   - TransRoiNet: RoiNet + Transformer (best of both worlds)
 - Reusable Transformer Blocks: Modular attention components for building hybrid models
 - Training Loop: Complete with validation, metrics tracking, and progress bars
+- TensorBoard Integration: Real-time visualization of training metrics, learning curves, and predictions
 - Early Stopping: Stops training when validation metrics stop improving (with patience)
 - Metrics History: Saves all epoch metrics to YAML for easy analysis
 - Checkpointing: Saves best and last model checkpoints
@@ -55,8 +57,9 @@ pip install -r requirements.txt
 
 ### Loss Functions & Metrics
 - Loss: Dice Loss (smooth, differentiable)
-- Metrics: Dice Coefficient, IoU (Intersection over Union)
+- Metrics: Dice Coefficient, IoU (Intersection over Union), AUC (Area Under ROC Curve)
 - Per-Image Metrics: Individual metrics for each test image
+- Advanced Logging: Layer activation monitoring and histograms
 
 ### Data Handling
 - Dataset: Automatic loading of images and masks
@@ -175,6 +178,219 @@ Epoch 2/20
 ```
 
 All epoch metrics are automatically saved to `outputs/experiments/<exp_name>/metrics_history.yaml`.
+
+---
+
+## TensorBoard Visualization
+
+### Overview
+
+TensorBoard integration is fully supported for real-time training visualization and experiment tracking.
+
+### Enabling TensorBoard
+
+TensorBoard is controlled via the `logging` section in your experiment config:
+
+```yaml
+logging:
+  tensorboard: true           # Enable/disable TensorBoard logging
+  log_images: false           # Enable/disable image logging (optional)
+  image_log_frequency: 5      # Log images every N epochs (default: 5, set to 1 for every epoch)
+```
+
+**Note**: All existing experiment configs already have `tensorboard: true` by default.
+
+### Starting TensorBoard
+
+**During Training**:
+```bash
+# In a separate terminal, run:
+tensorboard --logdir outputs/experiments/<exp_name>/tensorboard
+
+# For multiple experiments:
+tensorboard --logdir outputs/experiments
+
+# Then open in browser:
+# http://localhost:6006
+```
+
+**After Training**:
+```bash
+# View logs for a specific experiment
+tensorboard --logdir outputs/experiments/exp001_basic_unet/tensorboard
+
+# Compare multiple experiments
+tensorboard --logdir outputs/experiments
+```
+
+### What's Logged
+
+#### 1. **Scalars** (Automatically Logged Every Epoch)
+
+**Training Metrics**:
+- `train/loss` - Training loss
+- `train/dice` - Training Dice coefficient
+- `train/iou` - Training IoU score
+
+**Validation Metrics**:
+- `val/loss` - Validation loss
+- `val/dice` - Validation Dice coefficient
+- `val/iou` - Validation IoU score
+
+**Learning Rate**:
+- `learning_rate` - Current learning rate (tracks scheduler)
+
+**Comparison Plots**:
+- `comparison/dice` - Train vs Val Dice on same plot
+- `comparison/iou` - Train vs Val IoU on same plot
+
+#### 2. **Images** (Optional, Enabled with `log_images: true`)
+
+When `log_images: true` in config:
+- **Frequency**: Configurable via `image_log_frequency` (default: 5 epochs), or when best model is saved
+- **Content**: Side-by-side comparison of:
+  - Input image (denormalized)
+  - Ground truth mask
+  - Predicted mask
+- **Location**: `val/predictions` tab
+- **Samples**: Up to 4 validation samples per log
+
+**Example**: To log images every epoch:
+```yaml
+logging:
+  tensorboard: true
+  log_images: true
+  image_log_frequency: 1  # Log every epoch
+```
+
+#### 3. **Layer Activations** (Optional, Enabled with `log_activations: true`)
+
+Monitor neural network layer activations:
+- **Frequency**: Configurable via `activation_log_frequency` (default: 5 epochs)
+- **Content**: For each monitored layer:
+  - Histogram of activation values
+  - Statistics (mean, std, min, max)
+- **Location**: `Histograms` tab (distributions), `Scalars` tab (statistics)
+- **Layer Selection**: 
+  - `"auto"`: Model-specific defaults (recommended)
+  - Custom list: Specify exact layers
+  - `null`: Monitor all layers (not recommended)
+
+**Example**: To log activations every epoch:
+```yaml
+logging:
+  tensorboard: true
+  log_activations: true
+  activation_log_frequency: 1
+  activation_layers: "auto"      # Or specify: ["encoder1", "bottleneck"]
+```
+
+#### 4. **Model Graph**
+
+The model architecture graph is automatically logged at training start:
+- Shows layer connections and data flow
+- Useful for debugging model structure
+- View in the "Graphs" tab
+
+#### 4. **Hyperparameters**
+
+At training completion, logs hyperparameters and final metrics:
+- Model type, batch size, learning rate, etc.
+- Final validation metrics
+- Best metric achieved
+- Enables comparison across experiments
+
+### TensorBoard Features
+
+**Scalars Tab**:
+- Smooth curves (adjust smoothing slider)
+- Compare runs side-by-side
+- Toggle specific runs on/off
+- Download data as CSV/JSON
+
+**Images Tab**:
+- View prediction quality over time
+- Identify overfitting visually
+- Track model convergence
+
+**Graphs Tab**:
+- Visualize model architecture
+- Verify layer connections
+
+**HParams Tab**:
+- Compare hyperparameters across experiments
+- Identify best configurations
+- Parallel coordinates plot
+
+### Example Workflow
+
+1. **Start training with TensorBoard enabled**:
+   ```bash
+   ./train.sh exp001_basic_unet
+   ```
+
+2. **In a separate terminal, start TensorBoard**:
+   ```bash
+   tensorboard --logdir outputs/experiments/exp001_basic_unet/tensorboard
+   ```
+
+3. **Open browser**:
+   - Navigate to `http://localhost:6006`
+   - Watch metrics update in real-time as training progresses
+
+4. **Compare multiple experiments**:
+   ```bash
+   # Run multiple experiments
+   ./train.sh exp001_basic_unet
+   ./train.sh exp002_roinet
+   ./train.sh exp003_utrans
+   
+   # View all together
+   tensorboard --logdir outputs/experiments
+   ```
+
+### Test Results in TensorBoard
+
+Test metrics are also logged to TensorBoard when running tests:
+
+```bash
+./test.sh exp001_basic_unet
+```
+
+Test logs are saved to: `outputs/experiments/<exp_name>/tensorboard/test/`
+
+### Disabling TensorBoard
+
+To disable TensorBoard for an experiment:
+
+```yaml
+logging:
+  tensorboard: false    # Disable TensorBoard
+  log_images: false
+```
+
+Training will proceed normally with only console output and YAML metrics files.
+
+### Tips
+
+1. **Remote Server**: If training on a remote server, use SSH port forwarding:
+   ```bash
+   ssh -L 6006:localhost:6006 user@remote-server
+   tensorboard --logdir /path/to/experiments
+   ```
+
+2. **Custom Port**: Use a different port if 6006 is occupied:
+   ```bash
+   tensorboard --logdir outputs/experiments --port 6007
+   ```
+
+3. **Multiple Instances**: Run multiple TensorBoard instances for different experiment groups:
+   ```bash
+   tensorboard --logdir outputs/experiments/baseline_models --port 6006
+   tensorboard --logdir outputs/experiments/transformer_models --port 6007
+   ```
+
+4. **Refresh**: TensorBoard auto-refreshes every 30 seconds. Click the refresh button for immediate updates.
 
 ---
 
@@ -442,7 +658,10 @@ outputs/experiments/exp001_basic_unet/
 ├── checkpoints/
 │   ├── best.pth            # Best model (highest val_dice)
 │   └── last.pth            # Latest checkpoint
-└── metrics_history.yaml    # All epoch metrics
+├── metrics_history.yaml    # All epoch metrics
+└── tensorboard/            # TensorBoard logs (if enabled)
+    ├── events.out.tfevents.*
+    └── test/               # Test results (if test.py was run)
 ```
 
 **metrics_history.yaml** format:
@@ -735,7 +954,8 @@ With default configuration on FIVES512:
 3. Reproducible: Seed management, config saving, deterministic operations
 4. Extensible: Easy to add new models, losses, metrics via registry pattern
 5. User-Friendly: Shell scripts for common operations, clear error messages
-6. Multiple Architectures: Support for both classic (UNet) and advanced (RoiNet) models
+6. Multiple Architectures: Support for both classic (UNet) and advanced (RoiNet, UTrans, TransRoiNet) models
+7. Real-time Visualization: Integrated TensorBoard for training monitoring and experiment comparison
 
 ---
 

@@ -13,6 +13,7 @@ from tqdm import tqdm
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from utils.config import load_config
+from utils.tensorboard_logger import TensorBoardLogger
 from data import create_dataloaders
 from models import create_model
 from training.metrics import create_metrics
@@ -139,6 +140,63 @@ def test(config_path: str, checkpoint_path: str = None, output_dir: str = None):
     print(f"Per-image metrics saved to: {per_image_path}")
     
     print(f"\nPredicted masks saved to: {pred_dir}")
+    
+    # Log test results to TensorBoard (if enabled in config)
+    if config.get('logging', {}).get('tensorboard', False):
+        tb_log_dir = Path(config['output']['dir']) / 'tensorboard' / 'test'
+        with TensorBoardLogger(str(tb_log_dir), enabled=True) as tb_logger:
+            # Log test metrics as scalars
+            for metric_name, value in avg_metrics.items():
+                tb_logger.log_scalar(f'test/{metric_name}', value, 0)
+            
+            # Log some sample predictions
+            if config.get('logging', {}).get('log_images', False):
+                print("\nLogging sample predictions to TensorBoard...")
+                # Get a few samples from test set
+                sample_images = []
+                sample_gt = []
+                sample_pred = []
+                
+                # Re-run inference on first batch to get samples
+                test_iter = iter(test_loader)
+                for i in range(min(4, len(test_loader))):
+                    try:
+                        batch = next(test_iter)
+                        images = batch['image'].to(device) if isinstance(batch['image'], torch.Tensor) else torch.from_numpy(batch['image']).to(device)
+                        masks = batch['mask'].to(device) if isinstance(batch['mask'], torch.Tensor) else torch.from_numpy(batch['mask']).to(device)
+                        
+                        with torch.no_grad():
+                            outputs = model(images)
+                        
+                        sample_images.append(images[0])
+                        sample_gt.append(masks[0])
+                        sample_pred.append(outputs[0])
+                    except StopIteration:
+                        break
+                
+                if sample_images:
+                    sample_images = torch.stack(sample_images)
+                    sample_gt = torch.stack(sample_gt)
+                    sample_pred = torch.stack(sample_pred)
+                    
+                    dataset_config = config.get('dataset', {})
+                    mean = dataset_config.get('mean', [0.485, 0.456, 0.406])
+                    std = dataset_config.get('std', [0.229, 0.224, 0.225])
+                    
+                    tb_logger.log_images(
+                        tag='test/predictions',
+                        images=sample_images,
+                        masks_gt=sample_gt,
+                        masks_pred=sample_pred,
+                        step=0,
+                        max_images=4,
+                        denormalize=True,
+                        mean=mean,
+                        std=std
+                    )
+            
+            print("TensorBoard test logs saved.")
+    
     print(f"\n✓ Testing complete!")
     
     return avg_metrics, per_image_metrics
