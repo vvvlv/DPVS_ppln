@@ -145,15 +145,20 @@ class TensorBoardLogger:
         overlay_rgb[:, 1, :, :] = false_positive[:, 0, :, :] + true_positive[:, 0, :, :]    
         # TP    
         overlay_rgb[:, 2, :, :] = true_positive[:, 0, :, :]  
+
+        # Show on real image
+        # transparency of overlay
+        alpha = 0.5  
+        overlay_on_img = torch.clamp(images * (1.0 - alpha) + overlay_rgb * alpha, 0.0, 1.0)
         
-        # Create grid: [image, ground truth, prediction, overlay] for each sample
+        # Create grid: [image, ground truth, prediction, overlay, overlay on img] for each sample
         comparison_list = []
         for i in range(n):
-            comparison_list.extend([images[i], masks_gt_rgb[i], masks_pred_rgb[i], overlay_rgb[i]])
+            comparison_list.extend([images[i], masks_gt_rgb[i], masks_pred_rgb[i], overlay_rgb[i], overlay_on_img[i]])
         
-        # Stack and create grid (nrow=4 shows [image, gt, pred, overlay] per row)
+        # Stack and create grid (nrow=5 shows [image, gt, pred, overlay, overlay on img] per row)
         comparison = torch.stack(comparison_list)
-        grid = vutils.make_grid(comparison, nrow=4, padding=2, normalize=False)
+        grid = vutils.make_grid(comparison, nrow=5, padding=2, normalize=False)
         
         self.writer.add_image(tag, grid, step)
     
