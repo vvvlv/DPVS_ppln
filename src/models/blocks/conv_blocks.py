@@ -2,7 +2,9 @@
 
 import torch.nn as nn
 import torch.nn.functional as F
-
+from typing import Any
+from torch import Tensor
+import torch
 
 class DoubleConv(nn.Module):
     """Two consecutive convolution blocks."""
@@ -20,6 +22,39 @@ class DoubleConv(nn.Module):
     
     def forward(self, x):
         return self.double_conv(x)
+    
+
+class DownSampling(nn.Module):
+    def __init__(self, input_size: int, output_size: int):
+        super().__init__()
+        self.double_conv = DoubleConv(input_size, output_size)
+        self.max_pool = nn.MaxPool2d(kernel_size=2)
+
+    def forward(self, x: Any):
+        conv_x = self.double_conv(x)
+        x = self.max_pool(conv_x)
+        return conv_x, x
+    
+class UpSampling(nn.Module):
+    def __init__(self, input_size: int, output_size: int):
+        super().__init__()
+        self.up_conv = nn.ConvTranspose2d(in_channels=input_size, out_channels=output_size, kernel_size=2, stride=2)
+        self.double_conv = DoubleConv(input_size, output_size)
+
+    def forward(self, x: Tensor, skip: Tensor) -> Tensor:
+        x = self.up_conv(x) 
+        x = torch.cat([x, skip], dim=1)
+        x = self.double_conv(x)
+        return x
+    
+class Bottleneck(nn.Module):
+    def __init__(self, input_size: int, output_size: int):
+        super().__init__()
+        self.bottleneck = DoubleConv(input_size, output_size)
+
+    def forward(self, x: Tensor) -> Tensor:
+        x = self.bottleneck(x)
+        return x
 
 
 class ResidualBlock(nn.Module):

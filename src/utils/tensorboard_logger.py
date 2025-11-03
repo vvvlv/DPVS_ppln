@@ -130,16 +130,27 @@ class TensorBoardLogger:
         
         # Convert grayscale masks to RGB for visualization
         masks_gt_rgb = masks_gt.repeat(1, 3, 1, 1)
+        masks_pred = (masks_pred > 0.5).float() 
         masks_pred_rgb = masks_pred.repeat(1, 3, 1, 1)
+
+        # Colors: True-Positive = Green, False-Positive = Red, False-Negative = Blue
+        true_positive = (masks_gt * masks_pred)                     
+        false_positive = ((1.0 - masks_gt) * masks_pred)           
+        false_negative = (masks_gt * (1.0 - masks_pred))  
+
+        overlay_rgb = torch.zeros_like(masks_pred_rgb)   
+        overlay_rgb[:, 0, :, :] = false_positive[:, 0, :, :]         
+        overlay_rgb[:, 1, :, :] = true_positive[:, 0, :, :]         
+        overlay_rgb[:, 2, :, :] = false_negative[:, 0, :, :]   
         
-        # Create grid: [image, ground truth, prediction] for each sample
+        # Create grid: [image, ground truth, prediction, overlay] for each sample
         comparison_list = []
         for i in range(n):
-            comparison_list.extend([images[i], masks_gt_rgb[i], masks_pred_rgb[i]])
+            comparison_list.extend([images[i], masks_gt_rgb[i], masks_pred_rgb[i], overlay_rgb[i]])
         
-        # Stack and create grid (nrow=3 shows [image, gt, pred] per row)
+        # Stack and create grid (nrow=4 shows [image, gt, pred, overlay] per row)
         comparison = torch.stack(comparison_list)
-        grid = vutils.make_grid(comparison, nrow=3, padding=2, normalize=False)
+        grid = vutils.make_grid(comparison, nrow=4, padding=2, normalize=False)
         
         self.writer.add_image(tag, grid, step)
     
@@ -298,9 +309,9 @@ def get_default_layer_names(model_type: str) -> List[str]:
     # Define sensible defaults for each model type
     defaults = {
         'UNet': [
-            'encoder1', 'encoder2', 'encoder3', 'encoder4',
+            'down_conv_1', 'down_conv_2', 'down_conv_3', 'down_conv_4',
             'bottleneck',
-            'decoder1', 'decoder2', 'decoder3', 'decoder4'
+            'up_conv_1', 'up_conv_2', 'up_conv_3', 'up_conv_4'
         ],
         'RoiNet': [
             'dict_module.conv0',
