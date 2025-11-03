@@ -139,9 +139,12 @@ class TensorBoardLogger:
         false_negative = (masks_gt * (1.0 - masks_pred))  
 
         overlay_rgb = torch.zeros_like(masks_pred_rgb)   
-        overlay_rgb[:, 0, :, :] = false_positive[:, 0, :, :]         
-        overlay_rgb[:, 1, :, :] = true_positive[:, 0, :, :]         
-        overlay_rgb[:, 2, :, :] = false_negative[:, 0, :, :]   
+        # FN
+        overlay_rgb[:, 0, :, :] = false_positive[:, 0, :, :] + true_positive[:, 0, :, :] + false_negative[:, 0, :, :]     
+        # FP
+        overlay_rgb[:, 1, :, :] = false_positive[:, 0, :, :] + true_positive[:, 0, :, :]    
+        # TP    
+        overlay_rgb[:, 2, :, :] = true_positive[:, 0, :, :]  
         
         # Create grid: [image, ground truth, prediction, overlay] for each sample
         comparison_list = []
