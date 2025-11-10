@@ -17,7 +17,8 @@ class VesselSegmentationDataset(Dataset):
         image_size: tuple,
         mean: tuple,
         std: tuple,
-        normalize: bool = True
+        normalize: bool = True,
+        num_channels: int = 3
     ):
         """
         Initialize dataset.
@@ -29,6 +30,7 @@ class VesselSegmentationDataset(Dataset):
             mean: Normalization mean
             std: Normalization std
             normalize: Whether to normalize images
+            num_channels: Number of image channels (1 for grayscale/single channel, 3 for RGB)
         """
         self.root_dir = Path(root_dir)
         self.split = split
@@ -36,6 +38,7 @@ class VesselSegmentationDataset(Dataset):
         self.mean = np.array(mean, dtype=np.float32)
         self.std = np.array(std, dtype=np.float32)
         self.normalize = normalize
+        self.num_channels = num_channels
         
         # Load image and mask paths
         image_dir = self.root_dir / split / "image"
@@ -56,8 +59,14 @@ class VesselSegmentationDataset(Dataset):
     def __getitem__(self, idx: int) -> Dict[str, np.ndarray]:
         """Get a single sample."""
         # Load image and mask
-        image = cv2.imread(str(self.image_paths[idx]))
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        if self.num_channels == 1:
+            # Load as grayscale
+            image = cv2.imread(str(self.image_paths[idx]), cv2.IMREAD_GRAYSCALE)
+        else:
+            # Load as RGB
+            image = cv2.imread(str(self.image_paths[idx]))
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        
         mask = cv2.imread(str(self.mask_paths[idx]), cv2.IMREAD_GRAYSCALE)
         
         # Resize if needed
@@ -71,7 +80,13 @@ class VesselSegmentationDataset(Dataset):
             image = (image - self.mean) / self.std
         
         # To tensor format (CHW)
-        image = image.transpose(2, 0, 1)
+        if self.num_channels == 1:
+            # Add channel dimension for grayscale
+            image = image[None, :, :]
+        else:
+            # Transpose for RGB
+            image = image.transpose(2, 0, 1)
+        
         mask = mask[None, :, :].astype(np.float32) / 255.0
         
         return {

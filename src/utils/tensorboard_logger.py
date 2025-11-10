@@ -123,10 +123,15 @@ class TensorBoardLogger:
         
         # Denormalize images if needed
         if denormalize:
-            mean_tensor = torch.tensor(mean, device=images.device).view(1, 3, 1, 1)
-            std_tensor = torch.tensor(std, device=images.device).view(1, 3, 1, 1)
+            num_channels = images.size(1)
+            mean_tensor = torch.tensor(mean, device=images.device).view(1, num_channels, 1, 1)
+            std_tensor = torch.tensor(std, device=images.device).view(1, num_channels, 1, 1)
             images = images * std_tensor + mean_tensor
             images = torch.clamp(images, 0, 1)
+        
+        # Convert grayscale images to RGB for visualization if needed
+        if images.size(1) == 1:
+            images = images.repeat(1, 3, 1, 1)
         
         # Convert grayscale masks to RGB for visualization
         masks_gt_rgb = masks_gt.repeat(1, 3, 1, 1)

@@ -14,10 +14,8 @@ pip install -r requirements.txt
 ./train.sh exp001_basic_unet  # UNet baseline
 # OR
 ./train.sh exp002_roinet      # RoiNet with residuals
-# OR
-./train.sh exp003_utrans      # UTrans (UNet + Transformer)
-# OR
-./train.sh exp004_transroinet # TransRoiNet (RoiNet + Transformer)
+# OR queue multiple experiments
+./queue.sh exp001_basic_unet exp002_roinet  # Runs sequentially
 
 # 4. Test the model
 ./test.sh exp001_basic_unet
@@ -34,6 +32,7 @@ pip install -r requirements.txt
 - [Configuration](#-configuration)
 - [Project Structure](#-project-structure)
 - [Output Structure](#-output-structure)
+- [Memory Profiling & Debugging](#-memory-profiling--debugging)
 - [Extending the Pipeline](#-extending-the-pipeline)
 
 ---
@@ -50,6 +49,7 @@ pip install -r requirements.txt
 - Reusable Transformer Blocks: Modular attention components for building hybrid models
 - Training Loop: Complete with validation, metrics tracking, and progress bars
 - TensorBoard Integration: Real-time visualization of training metrics, learning curves, and predictions
+- Memory Profiling: Comprehensive VRAM usage analysis for debugging and optimization
 - Early Stopping: Stops training when validation metrics stop improving (with patience)
 - Metrics History: Saves all epoch metrics to YAML for easy analysis
 - Checkpointing: Saves best and last model checkpoints
@@ -94,10 +94,25 @@ For detailed installation instructions and troubleshooting, see [INSTALL.md](INS
 
 ## Data Setup
 
-Place your FIVES dataset in the following structure:
+### Available Dataset Configurations
+
+The pipeline supports multiple FIVES dataset variants at different resolutions and channel configurations:
+
+| Config File | Resolution | Channels | Description |
+|------------|-----------|----------|-------------|
+| `fives_rgb.yaml` | 2048x2048 | 3 (RGB) | Original high-resolution |
+| `fives_512.yaml` | 512x512 | 3 (RGB) | Legacy 512x512 RGB (backward compatible) |
+| `fives512_rgb.yaml` | 512x512 | 3 (RGB) | 512x512 RGB |
+| `fives512_g.yaml` | 512x512 | 1 (Green) | 512x512 green channel only |
+| `fives256_rgb.yaml` | 256x256 | 3 (RGB) | 256x256 RGB |
+| `fives256_g.yaml` | 256x256 | 1 (Green) | 256x256 green channel only |
+
+### Dataset Directory Structure
+
+All datasets follow this structure:
 
 ```
-codebase/data/FIVES512/
+codebase/data/FIVES<VARIANT>/
 ├── train/
 │   ├── image/          # Training images (*.png)
 │   └── label/          # Training masks (*.png)
@@ -109,16 +124,35 @@ codebase/data/FIVES512/
     └── label/          # Test masks
 ```
 
+Where `<VARIANT>` is:
+- `_RGB` - Original resolution RGB
+- `512_RGB` - 512x512 RGB
+- `512_G` - 512x512 green channel
+- `256_RGB` - 256x256 RGB
+- `256_G` - 256x256 green channel
+
+### Using a Dataset Configuration
+
+In your experiment config, reference the dataset:
+
+```yaml
+# For RGB datasets
+dataset: "configs/datasets/fives512_rgb.yaml"
+
+# For green channel datasets (remember to set model in_channels: 1)
+dataset: "configs/datasets/fives512_g.yaml"
+```
+
 ### Custom Data Path
 
-To use a different path, edit `configs/datasets/fives_512.yaml`:
+To use a different path, edit the corresponding dataset config file:
 
 ```yaml
 paths:
-  root: "/your/custom/path/to/FIVES512"
-  train: "/your/custom/path/to/FIVES512/train"
-  val: "/your/custom/path/to/FIVES512/val"
-  test: "/your/custom/path/to/FIVES512/test"
+  root: "/your/custom/path/to/FIVES512_RGB"
+  train: "/your/custom/path/to/FIVES512_RGB/train"
+  val: "/your/custom/path/to/FIVES512_RGB/val"
+  test: "/your/custom/path/to/FIVES512_RGB/test"
 ```
 
 ---
@@ -135,6 +169,30 @@ chmod +x train.sh
 ./train.sh exp001_basic_unet
 ```
 
+### Queue Multiple Experiments
+
+Run multiple experiments sequentially without manual intervention:
+
+```bash
+# Make script executable (first time only)
+chmod +x queue.sh
+
+# Queue multiple experiments
+./queue.sh exp001_basic_unet exp002_roinet exp003_utrans
+
+# Or use specific experiments
+./queue.sh exp001_basic_unet exp002_roinet
+```
+
+The queue script will:
+- Run each experiment sequentially
+- Continue even if one fails
+- Log queue summary to `outputs/queue_logs/queue_TIMESTAMP.log`
+- Each experiment's full output saved to its own directory
+- Show progress and summary at the end
+
+Useful for overnight training or running multiple configurations.
+
 ### Using Python Directly
 
 ```bash
@@ -149,10 +207,14 @@ python scripts/train.py --config configs/experiments/exp001_basic_unet.yaml
    - Validates after each epoch
    - Prints metrics (loss, dice, IoU)
    - Saves metrics history to YAML after each epoch
-3. Checkpointing: 
+3. Logging:
+   - All console output is saved to `training_log_TIMESTAMP.txt` in the experiment directory
+   - Real-time display while training
+   - Useful for reviewing training details later
+4. Checkpointing: 
    - Saves best model when validation metric improves
    - Saves last checkpoint every epoch
-4. Early Stopping: 
+5. Early Stopping: 
    - Monitors validation metric (e.g., val_dice)
    - Stops training if no improvement for N epochs (patience)
    - Displays countdown during no-improvement periods
@@ -637,10 +699,12 @@ codebase/
 │
 ├── outputs/                   # Training outputs (gitignored)
 │   ├── experiments/          # Training results
-│   └── tests/                # Test results
+│   ├── tests/                # Test results
+│   └── queue_logs/           # Queue script logs
 │
 ├── train.sh                   # Training launcher
 ├── test.sh                    # Testing launcher
+├── queue.sh                   # Queue multiple experiments
 ├── requirements.txt           # Dependencies
 ├── INSTALL.md                # Installation guide
 └── README.md                 # This file
@@ -654,14 +718,15 @@ codebase/
 
 ```
 outputs/experiments/exp001_basic_unet/
-├── config.yaml              # Copy of experiment config
+├── config.yaml                      # Copy of experiment config
+├── training_log_TIMESTAMP.txt       # Complete console output
 ├── checkpoints/
-│   ├── best.pth            # Best model (highest val_dice)
-│   └── last.pth            # Latest checkpoint
-├── metrics_history.yaml    # All epoch metrics
-└── tensorboard/            # TensorBoard logs (if enabled)
+│   ├── best.pth                    # Best model (highest val_dice)
+│   └── last.pth                    # Latest checkpoint
+├── metrics_history.yaml            # All epoch metrics
+└── tensorboard/                    # TensorBoard logs (if enabled)
     ├── events.out.tfevents.*
-    └── test/               # Test results (if test.py was run)
+    └── test/                       # Test results (if test.py was run)
 ```
 
 **metrics_history.yaml** format:
@@ -888,6 +953,86 @@ model:
 
 ---
 
+## Memory Profiling & Debugging
+
+The pipeline includes comprehensive VRAM profiling to help debug memory issues and optimize resource usage.
+
+### Quick Enable
+
+Add to your experiment config:
+
+```yaml
+debug:
+  profile_memory: true              # Enable memory profiling
+  detailed_memory: true              # Show per-layer breakdown
+  estimate_activations: true         # Estimate activation memory
+  profile_training_step: false       # Profile actual training step (CUDA only)
+```
+
+### What You Get
+
+Before training starts, you'll see:
+
+```
+📊 GPU Memory (Device: cuda:0):
+  Total VRAM:      23.65 GB
+  Currently Used:  245.67 MB
+  Available:       23.41 GB
+
+🧠 Model Memory Breakdown:
+  Parameters:      93.52 MB
+  Buffers:         0.12 MB
+  Total Model:     93.64 MB
+
+⚙️  Training Memory Estimates:
+  Gradients:       93.52 MB
+  Optimizer (ADAM): 187.04 MB
+  Activations:     1.23 GB
+
+💾 Total Estimated Training Memory: 1.59 GB
+   (~6.7% of available VRAM)
+
+📋 Per-Layer Memory Breakdown (Top 15):
+  Layer Name                               Parameters      Memory      
+  ---------------------------------------- --------------- ------------
+  encoder4                                 8,388,608       32.00 MB
+  encoder3                                 2,097,152       8.00 MB
+  ...
+```
+
+### Example Usage
+
+Enable in any experiment config (e.g., `exp001_basic_unet.yaml`):
+
+```yaml
+debug:
+  profile_memory: true              # Enable profiling
+  detailed_memory: true              # Show per-layer breakdown
+  estimate_activations: true         # Estimate activation memory
+  profile_training_step: false       # Optional: profile training step (CUDA only)
+```
+
+Then run normally:
+
+```bash
+python scripts/train.py --config configs/experiments/exp001_basic_unet.yaml
+```
+
+### Use Cases
+
+1. **Out of Memory Errors**: See exactly what's consuming VRAM
+2. **Optimize Batch Size**: Calculate maximum safe batch size
+3. **Model Comparison**: Compare memory usage across architectures
+4. **Layer Analysis**: Identify memory-heavy layers
+
+### Tips
+
+- Set `profile_memory: true` when debugging memory issues
+- Use `profile_training_step: true` (CUDA only) to see memory at each training stage
+- Set to `false` once debugging is complete to skip overhead
+
+---
+
 ## Troubleshooting
 
 ### "No images found in..."
@@ -896,9 +1041,15 @@ model:
 - Verify folder structure matches expected layout
 
 ### CUDA Out of Memory
+- **First**: Enable memory profiling to see what's using VRAM:
+  ```yaml
+  debug:
+    profile_memory: true
+  ```
 - Reduce `batch_size` in experiment config
 - Reduce model size: `depths: [16, 32, 64, 128, 256]`
 - Close other GPU applications
+- Consider using gradient accumulation or mixed precision
 
 ### Import Errors
 - Run from codebase root directory

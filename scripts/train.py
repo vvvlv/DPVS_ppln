@@ -12,9 +12,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 from utils.config import load_config
 from utils.helpers import set_seed, count_parameters
 from utils.tensorboard_logger import TensorBoardLogger
+from utils.memory_profiler import print_memory_report, profile_training_step_memory
 from data import create_dataloaders
 from models import create_model
 from training.trainer import Trainer
+from training.losses import create_loss
 
 
 def main(config_path: str):
@@ -59,6 +61,39 @@ def main(config_path: str):
     print(f"  Model: {config['model']['type']}")
     print(f"  Parameters: {count_parameters(model):,}")
     print(f"  Device: {device}")
+    
+    # Memory profiling (if enabled)
+    if config.get('debug', {}).get('profile_memory', False):
+        model_on_device = model.to(device)
+        
+        # Basic memory report
+        detailed = config.get('debug', {}).get('detailed_memory', True)
+        estimate_acts = config.get('debug', {}).get('estimate_activations', True)
+        print_memory_report(
+            model_on_device,
+            device,
+            config,
+            detailed=detailed,
+            estimate_activations=estimate_acts
+        )
+        
+        # Optional: Profile actual training step
+        if config.get('debug', {}).get('profile_training_step', False) and device.type == 'cuda':
+            criterion = create_loss(config['training']['loss'])
+            optimizer = torch.optim.Adam(model_on_device.parameters(), lr=0.001)  # Temporary optimizer
+            profile_training_step_memory(
+                model_on_device,
+                train_loader,
+                device,
+                criterion,
+                optimizer
+            )
+            del optimizer, criterion
+            torch.cuda.empty_cache()
+        
+        model = model_on_device
+    else:
+        model = model.to(device)
     
     # Initialize TensorBoard logger if enabled
     tb_logger = None

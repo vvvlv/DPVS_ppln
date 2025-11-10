@@ -28,7 +28,7 @@ model:
   final_activation: "sigmoid"
 
 training:
-  epochs: 20
+  epochs: 1
   
   optimizer:
     type: "adam"
@@ -69,11 +69,11 @@ training:
 logging:
   tensorboard: true
   log_images: true
-  image_log_frequency: 5              # Log images every 5 epochs
+  image_log_frequency: 1              # Log images every 5 epochs
   
-  # ⭐ NEW: Activation logging configuration
+  #  NEW: Activation logging configuration
   log_activations: true               # Enable activation logging
-  activation_log_frequency: 5         # Log activations every 5 epochs
+  activation_log_frequency: 1         # Log activations every 5 epochs
   activation_layers: "auto"           # Use model-specific default layers
   # Alternative: specify custom layers
   # activation_layers:

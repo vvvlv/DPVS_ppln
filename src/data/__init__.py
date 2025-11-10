@@ -18,7 +18,8 @@ def create_dataloaders(config: dict) -> Tuple[DataLoader, DataLoader, DataLoader
         image_size=tuple(dataset_config['image_size']),
         mean=dataset_config['mean'],
         std=dataset_config['std'],
-        normalize=data_config['preprocessing']['normalize']
+        normalize=data_config['preprocessing']['normalize'],
+        num_channels=dataset_config['num_channels']
     )
     
     val_dataset = VesselSegmentationDataset(
@@ -27,7 +28,8 @@ def create_dataloaders(config: dict) -> Tuple[DataLoader, DataLoader, DataLoader
         image_size=tuple(dataset_config['image_size']),
         mean=dataset_config['mean'],
         std=dataset_config['std'],
-        normalize=data_config['preprocessing']['normalize']
+        normalize=data_config['preprocessing']['normalize'],
+        num_channels=dataset_config['num_channels']
     )
     
     test_dataset = VesselSegmentationDataset(
@@ -36,7 +38,8 @@ def create_dataloaders(config: dict) -> Tuple[DataLoader, DataLoader, DataLoader
         image_size=tuple(dataset_config['image_size']),
         mean=dataset_config['mean'],
         std=dataset_config['std'],
-        normalize=data_config['preprocessing']['normalize']
+        normalize=data_config['preprocessing']['normalize'],
+        num_channels=dataset_config['num_channels']
     )
     
     # Create dataloaders
