@@ -2,6 +2,7 @@
 
 - to resize the FIVES dataset into multiple sizes
 - to convert samples into multiple channels 
+- to save automatically yaml configuration of dataset into folder datasets
 
 ### You can rezise samples to multiple target sizes 
 - Maximum supported image size is 1024x1024

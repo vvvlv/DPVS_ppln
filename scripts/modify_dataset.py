@@ -2,11 +2,21 @@
 Resize FIVES dataset to multiple sizes and channels.
 """
 
-from typing import List, Tuple
-from pathlib import Path
-from PIL import Image
 import argparse
 import sys
+import yaml
+import shutil
+from typing import List, Tuple, Dict, Any
+from pathlib import Path
+from PIL import Image
+
+class _FlowList(list):
+    pass
+
+def _repr_flow_list(dumper, data):
+    return dumper.represent_sequence('tag:yaml.org,2002:seq', data, flow_style=True)
+
+yaml.add_representer(_FlowList, _repr_flow_list, Dumper=yaml.SafeDumper)
 
 def parse_size(size: str, max_size: int = 1024) -> Tuple[int, int]:
     """ Parse unit H and W (NxN) with '256' -> (256,256) OR diverse values HxW like '320x256' -> (320,256). """
@@ -16,8 +26,9 @@ def parse_size(size: str, max_size: int = 1024) -> Tuple[int, int]:
         if 'x' in size:
             height, width = size.split('x')
             height, width = int(height), int(width)
-        height_x_width = int(size)
-        height, width = height_x_width, height_x_width
+        else:
+            height_x_width = int(size)
+            height, width = height_x_width, height_x_width
     except ValueError:
         raise ValueError(f"🙉🙉🙉 [ERROR] Invalid size format '{size}'. Expected either 'N' OR 'HxW', e.g., '256' or '320x256'.")
     
@@ -108,6 +119,54 @@ def split(
         
         img_converted.save(output_img_path)
         label_resized.save(output_label_path)
+
+def generate_dataset_config(
+    dataset_name: str,
+    output_sample_dir: Path,
+    height: int,
+    width: int,
+    channel: int,
+    project_dir: Path,
+) -> dict:
+    """ Generate a dataset configuration dictionary. """
+    num_channels = 3 if channel == 'rgb' else 1
+    relative_path = output_sample_dir.relative_to(project_dir)
+
+    config = {
+        'name': dataset_name,
+        'description': f"FIVES dataset at {height}x{width} resolution",
+        
+        'paths': {
+            'root': str(relative_path),
+            'train': str(relative_path / "train"),
+            'val': str(relative_path / "val"),
+            'test': str(relative_path / "test"),
+        },
+        
+        'image_size': _FlowList([height, width]),
+        'num_channels': num_channels,
+        'num_classes': 1,
+
+        'mean': _FlowList([0.485, 0.456, 0.406]) if num_channels == 3 else _FlowList([0.5]),
+        'std': _FlowList([0.229, 0.224, 0.225]) if num_channels == 3 else _FlowList([0.5]),
+    }
+    
+    return config
+
+def save_dataset_config(config: Dict[Any, Any], output_path: Path):
+    """ Save dataset configuration to YAML file. """
+   
+    try:
+        if output_path.exists():
+            print(f"\n⚠️🙉 [WARNING] Config file {output_path} already exists. Overwriting...")
+            # remove old file
+            output_path.unlink()  
+    except Exception as e:
+            print(f"🙉🙉🙉 [ERROR] Could not remove {output_path}: {e}")
+
+    with open(output_path, 'w') as file:
+        yaml.safe_dump(config, file, default_flow_style=False, sort_keys=False)
+    print(f"\nSaved dataset configuration to {output_path}")
     
 def process_dataset(
     input_dir: Path,
@@ -121,8 +180,31 @@ def process_dataset(
     sample_name = f"FIVES_{height}x{width}_{channel}"
     output_sample_dir = output_dir / sample_name
 
+    try:
+        if output_sample_dir.exists():
+            print(f"\n⚠️🙉 [WARNING] Dataset folder {output_sample_dir} already exists. Overwriting...")
+            shutil.rmtree(output_sample_dir) 
+    except Exception as e:
+        print(f"🙉🙉🙉 [ERROR] Could not remove {output_sample_dir}: {e}")
+
     for folder in ['train', 'val', 'test']:
         split(input_dir, output_sample_dir, size, channel, folder)
+
+    project_dir = Path(__file__).parent.parent
+    config = generate_dataset_config(
+        dataset_name=sample_name,
+        output_sample_dir=output_sample_dir,
+        height=height,
+        width=width,
+        channel=channel,
+        project_dir=project_dir,
+    )
+
+    datasets_dir = project_dir / "configs" / "datasets"
+    datasets_dir.mkdir(parents=True, exist_ok=True)
+
+    output_path = datasets_dir / f"{sample_name.lower()}.yaml"
+    save_dataset_config(config, output_path)
 
 
 def main():
@@ -148,12 +230,20 @@ def main():
     print(f"Output directory : {output_dir}")
     print(f"Sizes            : {args.sizes}")
     print(f"Channels         : {args.channels}")
+    
 
     # Parse sizes once
     sizes = [parse_size(size) for size in args.sizes]
 
+    seen = set()
     for H_x_W in sizes:
         for channel in args.channels:
+            key = (H_x_W[0], H_x_W[1], channel)
+            if key in seen:
+                print(f"Skipping duplicate target {key}")
+                continue
+            seen.add(key)
+
             process_dataset(
                 input_dir=input_dir,
                 output_dir=output_dir,

@@ -1,0 +1,12 @@
+name: FIVES_256x256_rgb
+description: FIVES dataset at 256x256 resolution
+paths:
+  root: data/FIVES_256x256_rgb
+  train: data/FIVES_256x256_rgb/train
+  val: data/FIVES_256x256_rgb/val
+  test: data/FIVES_256x256_rgb/test
+image_size: [256, 256]
+num_channels: 3
+num_classes: 1
+mean: [0.485, 0.456, 0.406]
+std: [0.229, 0.224, 0.225]
