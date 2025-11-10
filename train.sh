@@ -39,6 +39,9 @@ LOG_FILE="$OUTPUT_DIR/training_log_${TIMESTAMP}.txt"
 echo "Console output will be saved to: $LOG_FILE"
 echo ""
 
+# Unset LD_LIBRARY_PATH to avoid conflicts with CUDA (AppImage issue)
+unset LD_LIBRARY_PATH
+
 # Run training and save output to log file while displaying it
 python scripts/train.py --config "$CONFIG_FILE" 2>&1 | tee "$LOG_FILE"
 

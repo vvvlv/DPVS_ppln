@@ -776,6 +776,21 @@ Classic encoder-decoder architecture with skip connections:
 - Parameters: ~7.8M
 - Best for: Standard segmentation tasks, baseline experiments
 
+### TransUNet
+Hybrid CNN-Transformer architecture for medical image segmentation:
+- Structure: CNN encoder → Transformer bottleneck → CNN decoder
+- Encoder: 4-level CNN with DoubleConv blocks
+- Bottleneck: Multi-head self-attention transformer for global context
+- Decoder: 3-level CNN with skip connections
+- Default Depths: [64, 128, 256, 512]
+- Transformer: 6 blocks, 8 heads, embedding dim 512
+- Parameters: ~40-50M (depends on transformer depth)
+- Key Features:
+  - Combines local feature extraction (CNN) with global context (Transformer)
+  - Patch-based attention mechanism captures long-range dependencies
+  - Skip connections preserve high-resolution details
+- Best for: Medical imaging tasks requiring global context understanding
+
 ### RoiNet
 Advanced architecture with residual connections and deepened bottleneck:
 - Structure: 3-level encoder-decoder with residual blocks
@@ -785,17 +800,6 @@ Advanced architecture with residual connections and deepened bottleneck:
 - Bottleneck: Deepened with 2 additional residual blocks
 - Parameters: Varies with configuration
 - Best for: Complex features, better gradient flow via residuals
-
-### UTrans 
-Hybrid CNN-Transformer architecture combining local and global features:
-- Structure: UNet encoder-decoder with Transformer bottleneck
-- Encoder/Decoder: 4-level CNN with DoubleConv blocks
-- Bottleneck: Multi-head self-attention transformer (configurable depth)
-- Default Depths: [64, 128, 256, 512, 1024]
-- Transformer Config: 4 blocks, 8 heads, MLP ratio 4.0
-- Parameters: ~100M (actual: 100,300,993)
-- Key Feature: Captures long-range dependencies while preserving local details
-- Best for: Tasks requiring global context (large vessels, complex structures)
 
 ### TransRoiNet 
 Advanced hybrid combining RoiNet's residuals with Transformer attention:
@@ -824,6 +828,19 @@ model:
   depths: [32, 64, 128, 256, 512]
   final_activation: "sigmoid"
 
+# For TransUNet
+model:
+  type: "TransUNet"
+  in_channels: 3
+  out_channels: 1
+  depths: [64, 128, 256, 512]
+  transformer_embed_dim: 512        # Transformer embedding dimension
+  transformer_depth: 6              # Number of transformer blocks
+  transformer_heads: 8              # Attention heads
+  transformer_mlp_ratio: 4.0        # FFN expansion ratio
+  transformer_dropout: 0.1          # Dropout probability
+  final_activation: "sigmoid"
+
 # For RoiNet
 model:
   type: "RoiNet"
@@ -831,18 +848,6 @@ model:
   out_channels: 1
   depths: [32, 64, 128, 128, 64, 32]
   kernel_size: 9
-  final_activation: "sigmoid"
-
-# For UTrans (UNet + Transformer)
-model:
-  type: "UTrans"
-  in_channels: 3
-  out_channels: 1
-  depths: [64, 128, 256, 512, 1024]
-  transformer_depth: 4        # Number of transformer blocks
-  transformer_heads: 8        # Attention heads
-  transformer_mlp_ratio: 4.0  # FFN expansion ratio
-  transformer_dropout: 0.1    # Dropout probability
   final_activation: "sigmoid"
 
 # For TransRoiNet (RoiNet + Transformer)
