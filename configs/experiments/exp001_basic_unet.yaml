@@ -75,7 +75,12 @@ logging:
   activation_log_frequency: 1         # Log activations every N epochs (if log_activations: true)
   activation_layers: "auto"           # "auto" for model defaults, list for custom, null for all
 
-
+# Debug options for memory profiling
+debug:
+  profile_memory: true              # Enable memory profiling before training
+  detailed_memory: true              # Show per-layer breakdown
+  estimate_activations: true         # Estimate activation memory (runs forward pass)
+  profile_training_step: true       # Profile an actual training step (CUDA only)
 
 seed: 42
 device: "cuda" 

@@ -1,0 +1,31 @@
+# Cursor AI Rules for Deep Learning Project
+
+## Code Standards
+- All code, comments, and documentation must be in English
+- Follow existing code style and conventions in the project
+- Use clear, descriptive variable and function names
+
+## Documentation
+- NEVER create new .md files
+- Only add to README.md if absolutely necessary
+- Keep documentation concise and integrated with existing sections
+- Prefer inline code comments for implementation details
+
+## Formatting
+- NEVER use emojis in code, comments, or output
+- Use plain text symbols and formatting only
+- Keep output clean and professional
+
+## Execution
+- NEVER run Python commands directly using run_terminal_cmd
+- The Cursor environment is different from the user's venv
+- Only suggest commands for the user to run themselves
+- Use read_file, search_replace, and other non-execution tools instead
+
+## Project-Specific
+- This is a PyTorch-based vessel segmentation pipeline
+- Configuration files are in YAML format
+- Models are registered using a decorator pattern
+- Training and testing use separate scripts (train.py, test.py)
+- Memory profiling is available via debug config section
+

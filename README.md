@@ -34,6 +34,7 @@ pip install -r requirements.txt
 - [Configuration](#-configuration)
 - [Project Structure](#-project-structure)
 - [Output Structure](#-output-structure)
+- [Memory Profiling & Debugging](#-memory-profiling--debugging)
 - [Extending the Pipeline](#-extending-the-pipeline)
 
 ---
@@ -50,6 +51,7 @@ pip install -r requirements.txt
 - Reusable Transformer Blocks: Modular attention components for building hybrid models
 - Training Loop: Complete with validation, metrics tracking, and progress bars
 - TensorBoard Integration: Real-time visualization of training metrics, learning curves, and predictions
+- Memory Profiling: Comprehensive VRAM usage analysis for debugging and optimization
 - Early Stopping: Stops training when validation metrics stop improving (with patience)
 - Metrics History: Saves all epoch metrics to YAML for easy analysis
 - Checkpointing: Saves best and last model checkpoints
@@ -888,6 +890,86 @@ model:
 
 ---
 
+## Memory Profiling & Debugging
+
+The pipeline includes comprehensive VRAM profiling to help debug memory issues and optimize resource usage.
+
+### Quick Enable
+
+Add to your experiment config:
+
+```yaml
+debug:
+  profile_memory: true              # Enable memory profiling
+  detailed_memory: true              # Show per-layer breakdown
+  estimate_activations: true         # Estimate activation memory
+  profile_training_step: false       # Profile actual training step (CUDA only)
+```
+
+### What You Get
+
+Before training starts, you'll see:
+
+```
+📊 GPU Memory (Device: cuda:0):
+  Total VRAM:      23.65 GB
+  Currently Used:  245.67 MB
+  Available:       23.41 GB
+
+🧠 Model Memory Breakdown:
+  Parameters:      93.52 MB
+  Buffers:         0.12 MB
+  Total Model:     93.64 MB
+
+⚙️  Training Memory Estimates:
+  Gradients:       93.52 MB
+  Optimizer (ADAM): 187.04 MB
+  Activations:     1.23 GB
+
+💾 Total Estimated Training Memory: 1.59 GB
+   (~6.7% of available VRAM)
+
+📋 Per-Layer Memory Breakdown (Top 15):
+  Layer Name                               Parameters      Memory      
+  ---------------------------------------- --------------- ------------
+  encoder4                                 8,388,608       32.00 MB
+  encoder3                                 2,097,152       8.00 MB
+  ...
+```
+
+### Example Usage
+
+Enable in any experiment config (e.g., `exp001_basic_unet.yaml`):
+
+```yaml
+debug:
+  profile_memory: true              # Enable profiling
+  detailed_memory: true              # Show per-layer breakdown
+  estimate_activations: true         # Estimate activation memory
+  profile_training_step: false       # Optional: profile training step (CUDA only)
+```
+
+Then run normally:
+
+```bash
+python scripts/train.py --config configs/experiments/exp001_basic_unet.yaml
+```
+
+### Use Cases
+
+1. **Out of Memory Errors**: See exactly what's consuming VRAM
+2. **Optimize Batch Size**: Calculate maximum safe batch size
+3. **Model Comparison**: Compare memory usage across architectures
+4. **Layer Analysis**: Identify memory-heavy layers
+
+### Tips
+
+- Set `profile_memory: true` when debugging memory issues
+- Use `profile_training_step: true` (CUDA only) to see memory at each training stage
+- Set to `false` once debugging is complete to skip overhead
+
+---
+
 ## Troubleshooting
 
 ### "No images found in..."
@@ -896,9 +978,15 @@ model:
 - Verify folder structure matches expected layout
 
 ### CUDA Out of Memory
+- **First**: Enable memory profiling to see what's using VRAM:
+  ```yaml
+  debug:
+    profile_memory: true
+  ```
 - Reduce `batch_size` in experiment config
 - Reduce model size: `depths: [16, 32, 64, 128, 256]`
 - Close other GPU applications
+- Consider using gradient accumulation or mixed precision
 
 ### Import Errors
 - Run from codebase root directory
