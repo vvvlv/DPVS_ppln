@@ -1,11 +1,11 @@
-name: "exp001_1_basic_unet_green"
-description: "Basic UNet training with green channel only (512x512)"
-tags: ["baseline", "unet", "green_channel"]
+name: "exp001_basic_unet2"
+description: "Basic UNet training"
+tags: ["baseline", "unet"]
 
 dataset: "configs/datasets/fives_512x512_green.yaml"
 
 output:
-  dir: "outputs/experiments/exp001_1_basic_unet_green"
+  dir: "outputs/experiments/exp001_basic_unet2"
   save_predictions: true
 
 data:
@@ -75,12 +75,7 @@ logging:
   activation_log_frequency: 1         # Log activations every N epochs (if log_activations: true)
   activation_layers: "auto"           # "auto" for model defaults, list for custom, null for all
 
-# Debug options for memory profiling
-debug:
-  profile_memory: true              # Enable memory profiling before training
-  detailed_memory: true              # Show per-layer breakdown
-  estimate_activations: true         # Estimate activation memory (runs forward pass)
-  profile_training_step: true       # Profile an actual training step (CUDA only)
+
 
 seed: 42
 device: "cuda" 

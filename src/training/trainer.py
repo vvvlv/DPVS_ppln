@@ -65,7 +65,7 @@ class Trainer:
                 # Get input size from dataset config
                 dataset_config = config.get('dataset', {})
                 image_size = dataset_config.get('image_size', [512, 512])
-                in_channels = config['model'].get('in_channels', 3)
+                in_channels = dataset_config.get('num_channels', 3)
                 batch_size = config['data'].get('batch_size', 1)
                 
                 input_size = (batch_size, in_channels, image_size[0], image_size[1])

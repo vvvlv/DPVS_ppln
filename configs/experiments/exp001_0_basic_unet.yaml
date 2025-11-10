@@ -1,4 +1,4 @@
-name: "exp001_basic_unet"
+name: "exp001_basic_unet2"
 description: "Basic UNet training"
 tags: ["baseline", "unet"]
 
