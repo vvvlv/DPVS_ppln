@@ -94,10 +94,25 @@ For detailed installation instructions and troubleshooting, see [INSTALL.md](INS
 
 ## Data Setup
 
-Place your FIVES dataset in the following structure:
+### Available Dataset Configurations
+
+The pipeline supports multiple FIVES dataset variants at different resolutions and channel configurations:
+
+| Config File | Resolution | Channels | Description |
+|------------|-----------|----------|-------------|
+| `fives_rgb.yaml` | 2048x2048 | 3 (RGB) | Original high-resolution |
+| `fives_512.yaml` | 512x512 | 3 (RGB) | Legacy 512x512 RGB (backward compatible) |
+| `fives512_rgb.yaml` | 512x512 | 3 (RGB) | 512x512 RGB |
+| `fives512_g.yaml` | 512x512 | 1 (Green) | 512x512 green channel only |
+| `fives256_rgb.yaml` | 256x256 | 3 (RGB) | 256x256 RGB |
+| `fives256_g.yaml` | 256x256 | 1 (Green) | 256x256 green channel only |
+
+### Dataset Directory Structure
+
+All datasets follow this structure:
 
 ```
-codebase/data/FIVES512/
+codebase/data/FIVES<VARIANT>/
 ├── train/
 │   ├── image/          # Training images (*.png)
 │   └── label/          # Training masks (*.png)
@@ -109,16 +124,35 @@ codebase/data/FIVES512/
     └── label/          # Test masks
 ```
 
+Where `<VARIANT>` is:
+- `_RGB` - Original resolution RGB
+- `512_RGB` - 512x512 RGB
+- `512_G` - 512x512 green channel
+- `256_RGB` - 256x256 RGB
+- `256_G` - 256x256 green channel
+
+### Using a Dataset Configuration
+
+In your experiment config, reference the dataset:
+
+```yaml
+# For RGB datasets
+dataset: "configs/datasets/fives512_rgb.yaml"
+
+# For green channel datasets (remember to set model in_channels: 1)
+dataset: "configs/datasets/fives512_g.yaml"
+```
+
 ### Custom Data Path
 
-To use a different path, edit `configs/datasets/fives_512.yaml`:
+To use a different path, edit the corresponding dataset config file:
 
 ```yaml
 paths:
-  root: "/your/custom/path/to/FIVES512"
-  train: "/your/custom/path/to/FIVES512/train"
-  val: "/your/custom/path/to/FIVES512/val"
-  test: "/your/custom/path/to/FIVES512/test"
+  root: "/your/custom/path/to/FIVES512_RGB"
+  train: "/your/custom/path/to/FIVES512_RGB/train"
+  val: "/your/custom/path/to/FIVES512_RGB/val"
+  test: "/your/custom/path/to/FIVES512_RGB/test"
 ```
 
 ---
@@ -153,7 +187,8 @@ chmod +x queue.sh
 The queue script will:
 - Run each experiment sequentially
 - Continue even if one fails
-- Log all output to `outputs/queue_logs/`
+- Log queue summary to `outputs/queue_logs/queue_TIMESTAMP.log`
+- Each experiment's full output saved to its own directory
 - Show progress and summary at the end
 
 Useful for overnight training or running multiple configurations.
@@ -172,10 +207,14 @@ python scripts/train.py --config configs/experiments/exp001_basic_unet.yaml
    - Validates after each epoch
    - Prints metrics (loss, dice, IoU)
    - Saves metrics history to YAML after each epoch
-3. Checkpointing: 
+3. Logging:
+   - All console output is saved to `training_log_TIMESTAMP.txt` in the experiment directory
+   - Real-time display while training
+   - Useful for reviewing training details later
+4. Checkpointing: 
    - Saves best model when validation metric improves
    - Saves last checkpoint every epoch
-4. Early Stopping: 
+5. Early Stopping: 
    - Monitors validation metric (e.g., val_dice)
    - Stops training if no improvement for N epochs (patience)
    - Displays countdown during no-improvement periods
@@ -679,14 +718,15 @@ codebase/
 
 ```
 outputs/experiments/exp001_basic_unet/
-├── config.yaml              # Copy of experiment config
+├── config.yaml                      # Copy of experiment config
+├── training_log_TIMESTAMP.txt       # Complete console output
 ├── checkpoints/
-│   ├── best.pth            # Best model (highest val_dice)
-│   └── last.pth            # Latest checkpoint
-├── metrics_history.yaml    # All epoch metrics
-└── tensorboard/            # TensorBoard logs (if enabled)
+│   ├── best.pth                    # Best model (highest val_dice)
+│   └── last.pth                    # Latest checkpoint
+├── metrics_history.yaml            # All epoch metrics
+└── tensorboard/                    # TensorBoard logs (if enabled)
     ├── events.out.tfevents.*
-    └── test/               # Test results (if test.py was run)
+    └── test/                       # Test results (if test.py was run)
 ```
 
 **metrics_history.yaml** format:

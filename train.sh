@@ -26,9 +26,33 @@ echo "Training: $EXPERIMENT"
 echo "Config: $CONFIG_FILE"
 echo "=========================================="
 
-python scripts/train.py --config "$CONFIG_FILE"
+# Extract output directory from config file
+OUTPUT_DIR=$(grep -E "^\s*dir:" "$CONFIG_FILE" | head -1 | sed 's/.*dir:\s*"\?\([^"]*\)"\?.*/\1/' | tr -d '"')
+
+# Create output directory if it doesn't exist
+mkdir -p "$OUTPUT_DIR"
+
+# Create log file with timestamp
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+LOG_FILE="$OUTPUT_DIR/training_log_${TIMESTAMP}.txt"
+
+echo "Console output will be saved to: $LOG_FILE"
+echo ""
+
+# Run training and save output to log file while displaying it
+python scripts/train.py --config "$CONFIG_FILE" 2>&1 | tee "$LOG_FILE"
+
+# Capture the exit status
+EXIT_STATUS=${PIPESTATUS[0]}
 
 echo ""
 echo "=========================================="
-echo "Training complete!"
-echo "==========================================" 
+if [ $EXIT_STATUS -eq 0 ]; then
+    echo "Training complete!"
+else
+    echo "Training failed with exit code: $EXIT_STATUS"
+fi
+echo "Log saved to: $LOG_FILE"
+echo "=========================================="
+
+exit $EXIT_STATUS 
