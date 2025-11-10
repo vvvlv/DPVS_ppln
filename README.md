@@ -14,10 +14,8 @@ pip install -r requirements.txt
 ./train.sh exp001_basic_unet  # UNet baseline
 # OR
 ./train.sh exp002_roinet      # RoiNet with residuals
-# OR
-./train.sh exp003_utrans      # UTrans (UNet + Transformer)
-# OR
-./train.sh exp004_transroinet # TransRoiNet (RoiNet + Transformer)
+# OR queue multiple experiments
+./queue.sh exp001_basic_unet exp002_roinet  # Runs sequentially
 
 # 4. Test the model
 ./test.sh exp001_basic_unet
@@ -136,6 +134,29 @@ chmod +x train.sh
 # Train with experiment config
 ./train.sh exp001_basic_unet
 ```
+
+### Queue Multiple Experiments
+
+Run multiple experiments sequentially without manual intervention:
+
+```bash
+# Make script executable (first time only)
+chmod +x queue.sh
+
+# Queue multiple experiments
+./queue.sh exp001_basic_unet exp002_roinet exp003_utrans
+
+# Or use specific experiments
+./queue.sh exp001_basic_unet exp002_roinet
+```
+
+The queue script will:
+- Run each experiment sequentially
+- Continue even if one fails
+- Log all output to `outputs/queue_logs/`
+- Show progress and summary at the end
+
+Useful for overnight training or running multiple configurations.
 
 ### Using Python Directly
 
@@ -639,10 +660,12 @@ codebase/
 │
 ├── outputs/                   # Training outputs (gitignored)
 │   ├── experiments/          # Training results
-│   └── tests/                # Test results
+│   ├── tests/                # Test results
+│   └── queue_logs/           # Queue script logs
 │
 ├── train.sh                   # Training launcher
 ├── test.sh                    # Testing launcher
+├── queue.sh                   # Queue multiple experiments
 ├── requirements.txt           # Dependencies
 ├── INSTALL.md                # Installation guide
 └── README.md                 # This file
