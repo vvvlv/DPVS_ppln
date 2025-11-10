@@ -8,5 +8,5 @@ paths:
 image_size: [256, 256]
 num_channels: 1
 num_classes: 1
-mean: [0.449]
-std: [0.226]
+mean: [0.5]
+std: [0.5]
