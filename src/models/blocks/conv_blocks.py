@@ -6,16 +6,33 @@ from typing import Any
 from torch import Tensor
 import torch
 
+class SingleConv(nn.Module):
+    """Single convolution block."""
+    
+    def __init__(self, in_channels: int, out_channels: int, kernel_size: int = 3):
+        super().__init__()
+        padding = kernel_size // 2
+        self.single_conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size, padding=padding, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+    
+    def forward(self, x):
+        return self.single_conv(x)
+
+
 class DoubleConv(nn.Module):
     """Two consecutive convolution blocks."""
     
-    def __init__(self, in_channels: int, out_channels: int):
+    def __init__(self, in_channels: int, out_channels: int, kernel_size: int = 3):
         super().__init__()
+        padding = kernel_size // 2
         self.double_conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 3, padding=1, bias=False),
+            nn.Conv2d(in_channels, out_channels, kernel_size, padding=padding, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, 3, padding=1, bias=False),
+            nn.Conv2d(out_channels, out_channels, kernel_size, padding=padding, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
@@ -25,9 +42,9 @@ class DoubleConv(nn.Module):
     
 
 class DownSampling(nn.Module):
-    def __init__(self, input_size: int, output_size: int):
+    def __init__(self, input_size: int, output_size: int, kernel_size: int = 3):
         super().__init__()
-        self.double_conv = DoubleConv(input_size, output_size)
+        self.double_conv = DoubleConv(input_size, output_size, kernel_size=kernel_size)
         self.max_pool = nn.MaxPool2d(kernel_size=2)
 
     def forward(self, x: Any):
@@ -36,10 +53,10 @@ class DownSampling(nn.Module):
         return conv_x, x
     
 class UpSampling(nn.Module):
-    def __init__(self, input_size: int, output_size: int):
+    def __init__(self, input_size: int, output_size: int, kernel_size: int = 3):
         super().__init__()
         self.up_conv = nn.ConvTranspose2d(in_channels=input_size, out_channels=output_size, kernel_size=2, stride=2)
-        self.double_conv = DoubleConv(input_size, output_size)
+        self.double_conv = DoubleConv(input_size, output_size, kernel_size=kernel_size)
 
     def forward(self, x: Tensor, skip: Tensor) -> Tensor:
         x = self.up_conv(x) 
@@ -48,9 +65,9 @@ class UpSampling(nn.Module):
         return x
     
 class Bottleneck(nn.Module):
-    def __init__(self, input_size: int, output_size: int):
+    def __init__(self, input_size: int, output_size: int, kernel_size: int = 3):
         super().__init__()
-        self.bottleneck = DoubleConv(input_size, output_size)
+        self.bottleneck = DoubleConv(input_size, output_size, kernel_size=kernel_size)
 
     def forward(self, x: Tensor) -> Tensor:
         x = self.bottleneck(x)

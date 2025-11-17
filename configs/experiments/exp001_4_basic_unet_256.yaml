@@ -1,15 +1,15 @@
-name: "exp002_roinet_batch_size"
-description: "RoiNet with residual blocks and deepened bottleneck"
-tags: ["roinet", "residual", "baseline"]
+name: "exp001_4_basic_unet_256"
+description: "Basic UNet training at 256x256 resolution (RGB)"
+tags: ["baseline", "unet", "256x256"]
+
+dataset: "configs/datasets/fives256_rgb.yaml"
 
 output:
-  dir: "outputs/experiments/exp002_roinet_batch_size"
+  dir: "outputs/experiments/exp001_4_basic_unet_256"
   save_predictions: true
 
-dataset: "configs/datasets/fives_512.yaml"
-
 data:
-  batch_size: 2
+  batch_size: 4
   num_workers: 2
   pin_memory: true
   
@@ -21,11 +21,10 @@ data:
     pad_to_multiple: 32
 
 model:
-  type: "RoiNet"
+  type: "UNet"
   in_channels: 3
   out_channels: 1
-  depths: [32, 64, 128, 128, 64, 32]  # RoiNet default channel progression
-  kernel_size: 9                       # Larger kernel for residual blocks
+  depths: [32, 64, 128, 256, 512]
   final_activation: "sigmoid"
 
 training:
@@ -69,14 +68,19 @@ training:
 
 logging:
   tensorboard: true
-  log_images: false
-  image_log_frequency: 1              # Log images every N epochs (if log_images: true)
+  log_images: true
+  image_log_frequency: 1
   
-  # Advanced logging options
-  log_activations: false              # Enable to monitor layer activations
-  activation_log_frequency: 1         # Log activations every N epochs (if log_activations: true)
-  activation_layers: "auto"           # "auto" for model defaults, list for custom, null for all
+  log_activations: false
+  activation_log_frequency: 5
+  activation_layers: "auto"
 
+debug:
+  profile_memory: false
+  detailed_memory: true
+  estimate_activations: true
+  profile_training_step: false
 
 seed: 42
 device: "cuda"
+

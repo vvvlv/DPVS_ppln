@@ -1,11 +1,11 @@
-name: "exp001_1_basic_unet_green"
-description: "Basic UNet training with green channel only (512x512)"
-tags: ["baseline", "unet", "green_channel"]
+name: "exp001_5_basic_unet_nobottleneck_green"
+description: "Basic UNet without bottleneck - green channel only (512x512)"
+tags: ["baseline", "unet", "no_bottleneck", "green_channel"]
 
 dataset: "configs/datasets/fives512_g.yaml"
 
 output:
-  dir: "outputs/experiments/exp001_1_basic_unet_green"
+  dir: "outputs/experiments/exp001_5_basic_unet_nobottleneck_green"
   save_predictions: true
 
 data:
@@ -21,10 +21,10 @@ data:
     pad_to_multiple: 32
 
 model:
-  type: "UNet"
+  type: "UNetNoBottleneck"
   in_channels: 1
   out_channels: 1
-  depths: [32, 64, 128, 256, 512]
+  depths: [32, 64, 128, 256]
   final_activation: "sigmoid"
 
 training:
@@ -71,8 +71,8 @@ logging:
   log_images: true
   image_log_frequency: 1
   
-  log_activations: false
-  activation_log_frequency: 5
+  log_activations: true
+  activation_log_frequency: 1
   activation_layers: "auto"
 
 debug:
@@ -82,4 +82,5 @@ debug:
   profile_training_step: false
 
 seed: 42
-device: "cuda" 
+device: "cuda"
+

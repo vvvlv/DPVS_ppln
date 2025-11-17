@@ -1,5 +1,5 @@
-name: "exp002_transunet_xl_green"
-description: "TransUNet XL training - Extra Large transformer with green channel"
+name: "exp002_transunet_xxl_green"
+description: "TransUNet XXL training - Extra Large transformer with green channel"
 tags: ["transunet", "transformer", "hybrid", "green", "xl"]
 
 dataset: "configs/datasets/fives512_g.yaml"
@@ -52,7 +52,8 @@ training:
   
   metrics:
     - "dice"
-    - "iou"
+    - "focal_tversky"
+    - "auc"
   
   mixed_precision: false
   gradient_clip: 1.0

@@ -110,7 +110,7 @@ def test(config_path: str, checkpoint_path: str = None, output_dir: str = None):
     
     # Calculate average metrics
     n = len(test_loader.dataset)
-    avg_metrics = {k: float(v / len(test_loader)) for k, v in metric_sums.items()}
+    avg_metrics = {k: float(v / n) for k, v in metric_sums.items()}
     
     # Print results
     print("\n" + "=" * 60)

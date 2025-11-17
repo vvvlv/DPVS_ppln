@@ -2,6 +2,17 @@
 
 from .registry import register_model, get_model, list_models
 from .architectures.unet import UNet
+from .architectures.unet_no_bottleneck import UNetNoBottleneck
+from .architectures.unet_deep import UNetDeep
+from .architectures.unet_shallow import UNetShallow
+from .architectures.unet_heavy_bottleneck import UNetHeavyBottleneck
+from .architectures.unet_limited_skip import UNetLimitedSkip
+from .architectures.unet_simple_encoder import UNetSimpleEncoder
+from .architectures.unet_simple_bottleneck import UNetSimpleBottleneck
+from .architectures.unet_simple_decoder import UNetSimpleDecoder
+from .architectures.unet_no_skip import UNetNoSkip
+from .architectures.unet_kernel5 import UNetKernel5
+from .architectures.unet_kernel7 import UNetKernel7
 from .architectures.roinet import RoiNet
 from .architectures.transunet import TransUNet
 from .architectures.transroinet import TransRoiNet

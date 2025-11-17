@@ -60,10 +60,42 @@ def auc_score(pred, target) -> float:
         return 0.5
 
 
+def tversky_index(pred, target, alpha: float = 0.3, beta: float = 0.7, smooth: float = 1e-6) -> float:
+    """
+    Calculate the Tversky index.
+    
+    Uses probabilities directly (no thresholding) to stay consistent with
+    Tversky-based training losses.
+    """
+    pred = pred.contiguous().view(-1)
+    target = target.contiguous().view(-1)
+    
+    tp = (pred * target).sum()
+    fp = (pred * (1 - target)).sum()
+    fn = ((1 - pred) * target).sum()
+    
+    tversky = (tp + smooth) / (tp + alpha * fp + beta * fn + smooth)
+    return tversky.item()
+
+
+def focal_tversky_score(pred, target, alpha: float = 0.3, beta: float = 0.7,
+                        gamma: float = 1.333, smooth: float = 1e-6) -> float:
+    """
+    Focal Tversky score (1 - Focal Tversky loss).
+    
+    Higher is better; equals 1 when prediction matches target perfectly.
+    """
+    tversky = tversky_index(pred, target, alpha=alpha, beta=beta, smooth=smooth)
+    focal_score = 1.0 - (1.0 - tversky) ** gamma
+    return float(focal_score)
+
+
 METRICS = {
     'dice': dice_coefficient,
     'iou': iou_score,
-    'auc': auc_score
+    'auc': auc_score,
+    'tversky': tversky_index,
+    'focal_tversky': focal_tversky_score,
 }
 
 

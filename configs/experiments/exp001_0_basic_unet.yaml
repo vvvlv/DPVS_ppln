@@ -45,7 +45,8 @@ training:
   
   metrics:
     - "dice"
-    - "iou"
+    - "focal_tversky"
+    - "auc"
   
   mixed_precision: false
   gradient_clip: 1.0
@@ -68,19 +69,17 @@ training:
 logging:
   tensorboard: true
   log_images: true
-  image_log_frequency: 1              # Log images every N epochs (if log_images: true)
+  image_log_frequency: 1
   
-  # Advanced logging options
-  log_activations: true              # Enable to monitor layer activations
-  activation_log_frequency: 1         # Log activations every N epochs (if log_activations: true)
-  activation_layers: "auto"           # "auto" for model defaults, list for custom, null for all
+  log_activations: false
+  activation_log_frequency: 5
+  activation_layers: "auto"
 
-# Debug options for memory profiling
 debug:
-  profile_memory: true              # Enable memory profiling before training
-  detailed_memory: true              # Show per-layer breakdown
-  estimate_activations: true         # Estimate activation memory (runs forward pass)
-  profile_training_step: true       # Profile an actual training step (CUDA only)
+  profile_memory: false
+  detailed_memory: true
+  estimate_activations: true
+  profile_training_step: false
 
 seed: 42
 device: "cuda" 

@@ -1,4 +1,4 @@
-name: "exp002_transunet"
+name: "exp002_transunet_big"
 description: "TransUNet training - CNN encoder + Transformer bottleneck + CNN decoder"
 tags: ["transunet", "transformer", "hybrid"]
 
@@ -52,7 +52,8 @@ training:
   
   metrics:
     - "dice"
-    - "iou"
+    - "focal_tversky"
+    - "auc"
   
   mixed_precision: false
   gradient_clip: 1.0
