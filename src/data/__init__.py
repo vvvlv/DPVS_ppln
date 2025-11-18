@@ -10,6 +10,7 @@ def create_dataloaders(config: dict) -> Tuple[DataLoader, DataLoader, DataLoader
     
     dataset_config = config['dataset']
     data_config = config['data']
+    augmentation_config = data_config.get('augmentation', {})
     
     # Create datasets
     train_dataset = VesselSegmentationDataset(
@@ -19,7 +20,8 @@ def create_dataloaders(config: dict) -> Tuple[DataLoader, DataLoader, DataLoader
         mean=dataset_config['mean'],
         std=dataset_config['std'],
         normalize=data_config['preprocessing']['normalize'],
-        num_channels=dataset_config['num_channels']
+        num_channels=dataset_config['num_channels'],
+        augmentation=augmentation_config
     )
     
     val_dataset = VesselSegmentationDataset(
@@ -29,7 +31,8 @@ def create_dataloaders(config: dict) -> Tuple[DataLoader, DataLoader, DataLoader
         mean=dataset_config['mean'],
         std=dataset_config['std'],
         normalize=data_config['preprocessing']['normalize'],
-        num_channels=dataset_config['num_channels']
+        num_channels=dataset_config['num_channels'],
+        augmentation=augmentation_config
     )
     
     test_dataset = VesselSegmentationDataset(
@@ -39,7 +42,8 @@ def create_dataloaders(config: dict) -> Tuple[DataLoader, DataLoader, DataLoader
         mean=dataset_config['mean'],
         std=dataset_config['std'],
         normalize=data_config['preprocessing']['normalize'],
-        num_channels=dataset_config['num_channels']
+        num_channels=dataset_config['num_channels'],
+        augmentation=augmentation_config
     )
     
     # Create dataloaders

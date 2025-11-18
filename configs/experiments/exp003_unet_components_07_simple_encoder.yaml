@@ -71,8 +71,8 @@ logging:
   log_images: true
   image_log_frequency: 1
   
-  log_activations: false
-  activation_log_frequency: 5
+  log_activations: true
+  activation_log_frequency: 1
   activation_layers: "auto"
 
 debug:

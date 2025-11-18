@@ -8,9 +8,9 @@ from ..blocks.conv_blocks import DownSampling, UpSampling, SingleConv
 class SimpleBottleneck(nn.Module):
     """Bottleneck with SingleConv instead of DoubleConv."""
     
-    def __init__(self, input_size: int, output_size: int):
+    def __init__(self, input_size: int, output_size: int, dropout: float = 0.0):
         super().__init__()
-        self.bottleneck = SingleConv(input_size, output_size)
+        self.bottleneck = SingleConv(input_size, output_size, dropout=dropout)
 
     def forward(self, x):
         x = self.bottleneck(x)
@@ -32,21 +32,22 @@ class UNetSimpleBottleneck(nn.Module):
         in_channels = config['in_channels']
         out_channels = config['out_channels']
         depths = config['depths']  # e.g., [32, 64, 128, 256, 512]
+        dropout = config.get('dropout', 0.0)
         
         # Encoder - unchanged (DoubleConv)
-        self.down_conv_1 = DownSampling(in_channels, depths[0])
-        self.down_conv_2 = DownSampling(depths[0], depths[1])
-        self.down_conv_3 = DownSampling(depths[1], depths[2])
-        self.down_conv_4 = DownSampling(depths[2], depths[3])
+        self.down_conv_1 = DownSampling(in_channels, depths[0], dropout=dropout)
+        self.down_conv_2 = DownSampling(depths[0], depths[1], dropout=dropout)
+        self.down_conv_3 = DownSampling(depths[1], depths[2], dropout=dropout)
+        self.down_conv_4 = DownSampling(depths[2], depths[3], dropout=dropout)
         
         # Bottleneck - simplified with SingleConv
-        self.bottleneck = SimpleBottleneck(depths[3], depths[4])
+        self.bottleneck = SimpleBottleneck(depths[3], depths[4], dropout=dropout)
         
         # Decoder - unchanged (DoubleConv)
-        self.up_conv_1 = UpSampling(depths[4], depths[3])
-        self.up_conv_2 = UpSampling(depths[3], depths[2]) 
-        self.up_conv_3 = UpSampling(depths[2], depths[1])
-        self.up_conv_4 = UpSampling(depths[1], depths[0])
+        self.up_conv_1 = UpSampling(depths[4], depths[3], dropout=dropout)
+        self.up_conv_2 = UpSampling(depths[3], depths[2], dropout=dropout) 
+        self.up_conv_3 = UpSampling(depths[2], depths[1], dropout=dropout)
+        self.up_conv_4 = UpSampling(depths[1], depths[0], dropout=dropout)
         
         # Output
         self.out_conv = nn.Conv2d(depths[0], out_channels, 1)

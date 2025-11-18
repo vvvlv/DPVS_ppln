@@ -1,11 +1,11 @@
-name: "exp003_unet_components_12_kernel7x7"
-description: "UNet with 7x7 kernels instead of 3x3 - even larger receptive field per layer"
-tags: ["unet_components", "kernel7x7", "receptive_field", "green_channel"]
+name: "exp006_focal_reg_07_simple_encoder"
+description: "UNetSimpleEncoder + dropout + augmentation, trained with Focal Tversky loss"
+tags: ["exp006", "unet_simple_encoder", "focal_tversky", "regularized"]
 
 dataset: "configs/datasets/fives512_g.yaml"
 
 output:
-  dir: "outputs/experiments/exp003_unet_components_12_kernel7x7"
+  dir: "outputs/experiments/exp006_focal_reg_07_simple_encoder"
   save_predictions: true
 
 data:
@@ -14,21 +14,27 @@ data:
   pin_memory: true
   
   augmentation:
-    enabled: false
+    enabled: true
+    horizontal_flip: 0.5
+    vertical_flip: 0.2
+    rotation90: true
+    rotation_prob: 0.5
+    brightness: 0.1
   
   preprocessing:
     normalize: true
     pad_to_multiple: 32
 
 model:
-  type: "UNetKernel7"
+  type: "UNetSimpleEncoder"
   in_channels: 1
   out_channels: 1
   depths: [32, 64, 128, 256, 512]
   final_activation: "sigmoid"
+  dropout: 0.2
 
 training:
-  epochs: 20
+  epochs: 50
   
   optimizer:
     type: "adam"
@@ -40,7 +46,10 @@ training:
     min_lr: 0.000001
   
   loss:
-    type: "dice"
+    type: "focal_tversky"
+    alpha: 0.3
+    beta: 0.7
+    gamma: 1.333
     smooth: 0.000001
   
   metrics:
@@ -56,14 +65,14 @@ training:
   
   early_stopping:
     enabled: true
-    patience: 5
-    monitor: "val_dice"
+    patience: 15
+    monitor: "val_focal_tversky"
     mode: "max"
   
   checkpoint:
     save_best: true
     save_last: true
-    monitor: "val_dice"
+    monitor: "val_focal_tversky"
     mode: "max"
 
 logging:

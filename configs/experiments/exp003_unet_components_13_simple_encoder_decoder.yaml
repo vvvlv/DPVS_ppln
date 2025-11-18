@@ -1,11 +1,11 @@
-name: "exp003_unet_components_12_kernel7x7"
-description: "UNet with 7x7 kernels instead of 3x3 - even larger receptive field per layer"
-tags: ["unet_components", "kernel7x7", "receptive_field", "green_channel"]
+name: "exp003_unet_components_13_simple_encoder_decoder"
+description: "UNet with SingleConv encoder and decoder (simple encoder + decoder)"
+tags: ["unet_components", "simple_encoder", "simple_decoder", "simplified", "green_channel"]
 
 dataset: "configs/datasets/fives512_g.yaml"
 
 output:
-  dir: "outputs/experiments/exp003_unet_components_12_kernel7x7"
+  dir: "outputs/experiments/exp003_unet_components_13_simple_encoder_decoder"
   save_predictions: true
 
 data:
@@ -21,7 +21,7 @@ data:
     pad_to_multiple: 32
 
 model:
-  type: "UNetKernel7"
+  type: "UNetSimpleEncoderDecoder"
   in_channels: 1
   out_channels: 1
   depths: [32, 64, 128, 256, 512]
@@ -83,4 +83,5 @@ debug:
 
 seed: 42
 device: "cuda"
+
 

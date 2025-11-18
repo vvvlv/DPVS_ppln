@@ -73,7 +73,7 @@ logging:
   image_log_frequency: 1              # Log images every N epochs (if log_images: true)
   
   # Advanced logging options
-  log_activations: false              # Enable to monitor layer activations
+  log_activations: true              # Enable to monitor layer activations
   activation_log_frequency: 1         # Log activations every N epochs (if log_activations: true)
   activation_layers: "auto"           # "auto" for model defaults, list for custom, null for all
 

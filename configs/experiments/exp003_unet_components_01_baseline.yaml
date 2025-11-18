@@ -71,7 +71,7 @@ logging:
   log_images: true
   image_log_frequency: 1
   
-  log_activations: tre
+  log_activations: true
   activation_log_frequency: 1
   activation_layers: "auto"
 
