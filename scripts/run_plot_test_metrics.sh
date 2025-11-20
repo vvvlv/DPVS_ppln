@@ -33,27 +33,79 @@ cd "$ROOT_DIR"
 # )
 
 
+# EXPERIMENTS=(
+#   "exp003_unet_components_01_baseline"
+#   "exp003_unet_components_07_simple_encoder"
+#   "exp003_unet_components_08_simple_bottleneck"
+#   "exp003_unet_components_09_simple_decoder"
+#   "exp003_unet_components_10_no_skip"
+#   "exp005_focal_components_01_baseline"
+#   "exp005_focal_components_07_simple_encoder"
+#   "exp005_focal_components_08_simple_bottleneck"
+#   "exp005_focal_components_09_simple_decoder"
+#   "exp005_focal_components_10_no_skip"
+#   "exp006_focal_reg_01_baseline"
+#   "exp006_focal_reg_02_baseline_dropout_0.1"
+#   "exp006_focal_reg_03_baseline_dropout_0.005"
+#   "exp006_focal_reg_04_baseline_dropout_0.4"
+#   "exp006_focal_reg_11_simple_encoder_decoder"
+# )
+
+# OUTPUT_DIR="outputs/plots/unet_components_comparison"
+
+
+
+# EXPERIMENTS=(
+#   "exp003_unet_components_01_baseline"
+#   "exp003_unet_components_13_simple_encoder_decoder"
+#   "exp005_focal_components_01_baseline"
+#   "exp005_focal_components_11_simple_encoder_decoder"
+#   "exp006_focal_reg_01_baseline"
+#   "exp006_focal_reg_11_simple_encoder_decoder"
+# )
+
+# OUTPUT_DIR="outputs/plots/unet_baseline_vs_singleConv"
+
+
+
+  # "exp007_dice_reg_01_baseline_dropout_0.2"
+  # "exp005_focal_components_01_baseline"
+  # "exp005_focal_components_11_simple_encoder_decoder"
+  # "exp006_focal_reg_01_baseline"
+  # "exp006_focal_reg_11_simple_encoder_decoder"
+
 EXPERIMENTS=(
   "exp003_unet_components_01_baseline"
   "exp003_unet_components_07_simple_encoder"
   "exp003_unet_components_08_simple_bottleneck"
   "exp003_unet_components_09_simple_decoder"
   "exp003_unet_components_10_no_skip"
-  "exp005_focal_components_01_baseline"
-  "exp005_focal_components_07_simple_encoder"
-  "exp005_focal_components_08_simple_bottleneck"
-  "exp005_focal_components_09_simple_decoder"
-  "exp005_focal_components_10_no_skip"
-  "exp006_focal_reg_01_baseline"
-  "exp006_focal_reg_02_baseline_dropout_0.1"
-  "exp006_focal_reg_03_baseline_dropout_0.005"
-  "exp006_focal_reg_04_baseline_dropout_0.4"
-  "exp006_focal_reg_11_simple_encoder_decoder"
+  "exp003_unet_components_13_simple_encoder_decoder"
+  "exp007_dice_reg_01_baseline_dropout_0.2"
+  "exp007_dice_reg_05_simple_encoder_dropout_0.2"
+  "exp007_dice_reg_03_simple_encoder_decoder_dropout_0.2"
 )
+
+OUTPUT_DIR="outputs/plots/unet_noReg_vs_Reg"
+
+
+# EXPERIMENTS=(
+#   "exp003_unet_components_01_baseline"
+#   "exp003_unet_components_13_simple_encoder_decoder"
+#   "exp005_focal_components_01_baseline"
+#   "exp005_focal_components_11_simple_encoder_decoder"
+#   "exp007_dice_reg_01_baseline_dropout_0.2"
+#   "exp007_dice_reg_03_simple_encoder_decoder_dropout_0.2"
+#   "exp006_focal_reg_01_baseline"
+#   "exp006_focal_reg_11_simple_encoder_decoder"
+# )
+#
+# OUTPUT_DIR="outputs/plots/dice_vs_focal_tversky"
+
 
 
 SHOW_FLAG=""
-OUTPUT_DIR="outputs/plots/unet_components_comparison"
+
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
