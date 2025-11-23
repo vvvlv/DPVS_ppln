@@ -11,6 +11,7 @@ from .architectures.unet_simple_encoder import UNetSimpleEncoder
 from .architectures.unet_simple_bottleneck import UNetSimpleBottleneck
 from .architectures.unet_simple_decoder import UNetSimpleDecoder
 from .architectures.unet_simple_encoder_decoder import UNetSimpleEncoderDecoder
+from .architectures.unet_two_down import UNetTwoDown
 from .architectures.unet_no_skip import UNetNoSkip
 from .architectures.unet_kernel5 import UNetKernel5
 from .architectures.unet_kernel7 import UNetKernel7

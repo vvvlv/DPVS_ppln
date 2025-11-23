@@ -16,22 +16,14 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 
-
 # EXPERIMENTS=(
-#   "exp001_1_basic_unet_green"
-#   "exp003_unet_components_02_reduced_depths"
-#   "exp003_unet_components_04_shallow"
-#   "exp003_unet_components_05_deep"
-#   "exp003_unet_components_06_limited_skip"
+#   "exp003_unet_components_01_baseline"
+#   "exp003_unet_components_07_simple_encoder"
+#   "exp003_unet_components_08_simple_bottleneck"
+#   "exp003_unet_components_09_simple_decoder"
 #   "exp003_unet_components_10_no_skip"
-#   "exp003_unet_components_11_kernel5x5"
-#   "exp003_unet_components_12_kernel7x7"
-#   "exp004_auc_01_unet_baseline"
-#   "exp004_auc_02_unet_kernel5"
-#   "exp004_auc_03_unet_shallow"
-#   "exp004_auc_04_unet_deep"
 # )
-
+# OUTPUT_DIR="outputs/plots/001_unet_components_comparison"
 
 # EXPERIMENTS=(
 #   "exp003_unet_components_01_baseline"
@@ -53,8 +45,6 @@ cd "$ROOT_DIR"
 
 # OUTPUT_DIR="outputs/plots/unet_components_comparison"
 
-
-
 # EXPERIMENTS=(
 #   "exp003_unet_components_01_baseline"
 #   "exp003_unet_components_13_simple_encoder_decoder"
@@ -63,9 +53,24 @@ cd "$ROOT_DIR"
 #   "exp006_focal_reg_01_baseline"
 #   "exp006_focal_reg_11_simple_encoder_decoder"
 # )
-
+#
 # OUTPUT_DIR="outputs/plots/unet_baseline_vs_singleConv"
 
+
+
+
+EXPERIMENTS=(
+  "exp003_unet_components_01_baseline"
+  "exp003_unet_components_13_simple_encoder_decoder"
+  "exp005_focal_components_01_baseline"
+  "exp005_focal_components_11_simple_encoder_decoder"
+  "exp006_focal_reg_01_baseline"
+  "exp006_focal_reg_11_simple_encoder_decoder"
+  "exp007_dice_reg_01_baseline_dropout_0.2"
+  "exp007_dice_reg_03_simple_encoder_decoder_dropout_0.2"
+)
+
+OUTPUT_DIR="outputs/plots/003_baseline_vs_singleConv_dice_focal_reg"
 
 
   # "exp007_dice_reg_01_baseline_dropout_0.2"
@@ -74,19 +79,19 @@ cd "$ROOT_DIR"
   # "exp006_focal_reg_01_baseline"
   # "exp006_focal_reg_11_simple_encoder_decoder"
 
-EXPERIMENTS=(
-  "exp003_unet_components_01_baseline"
-  "exp003_unet_components_07_simple_encoder"
-  "exp003_unet_components_08_simple_bottleneck"
-  "exp003_unet_components_09_simple_decoder"
-  "exp003_unet_components_10_no_skip"
-  "exp003_unet_components_13_simple_encoder_decoder"
-  "exp007_dice_reg_01_baseline_dropout_0.2"
-  "exp007_dice_reg_05_simple_encoder_dropout_0.2"
-  "exp007_dice_reg_03_simple_encoder_decoder_dropout_0.2"
-)
+# EXPERIMENTS=(
+#   "exp003_unet_components_01_baseline"
+#   "exp003_unet_components_07_simple_encoder"
+#   "exp003_unet_components_08_simple_bottleneck"
+#   "exp003_unet_components_09_simple_decoder"
+#   "exp003_unet_components_10_no_skip"
+#   "exp003_unet_components_13_simple_encoder_decoder"
+#   "exp007_dice_reg_01_baseline_dropout_0.2"
+#   "exp007_dice_reg_05_simple_encoder_dropout_0.2"
+#   "exp007_dice_reg_03_simple_encoder_decoder_dropout_0.2"
+# )
 
-OUTPUT_DIR="outputs/plots/unet_noReg_vs_Reg"
+# OUTPUT_DIR="outputs/plots/unet_noReg_vs_Reg"
 
 
 # EXPERIMENTS=(
