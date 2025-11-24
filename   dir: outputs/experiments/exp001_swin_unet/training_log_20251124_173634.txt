@@ -1,0 +1,33 @@
+/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/models/architectures/tiny_swin.py:548: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+  assert height == self.image_size and width == self.image_size, \
+/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/models/architectures/tiny_swin.py:279: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+  assert num_tokens == height * width, \
+/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/models/architectures/tiny_swin.py:351: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+  assert patch_resolution == height * width, \
+/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/models/architectures/tiny_swin.py:394: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+  assert num_tokens == height * width, \
+/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/models/architectures/tiny_swin.py:587: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+  assert patch_resolution == final_height * final_width, \
+======================================================================
+Experiment: exp001_swin_unet
+Description: Tiny Swin UNet for FIVES vessel segmentation
+======================================================================
+
+Output directory: outputs/experiments/exp001_swin_unet
+
+Creating dataloaders...
+  Train samples: 480
+  Val samples: 120
+  Test samples: 200
+
+Creating model...
+  Model: TinySwinUNet
+  Parameters: 12,785,985
+  Device: mps
+TensorBoard logging enabled: outputs/experiments/exp001_swin_unet/tensorboard
+  View logs with: tensorboard --logdir outputs/experiments/exp001_swin_unet/tensorboard
+
+Starting training for 20 epochs...
+
+
+Epoch 1 [Train]:   0%|          | 0/120 [00:00<?, ?it/s]Epoch 1 [Train]:   0%|          | 0/120 [01:25<?, ?it/s, loss=0.8796]Epoch 1 [Train]:   1%|          | 1/120 [01:25<2:48:37, 85.02s/it, loss=0.8796]Epoch 1 [Train]:   1%|          | 1/120 [02:53<2:48:37, 85.02s/it, loss=0.8383]Epoch 1 [Train]:   2%|▏         | 2/120 [02:53<2:50:58, 86.94s/it, loss=0.8383]Epoch 1 [Train]:   2%|▏         | 2/120 [04:04<2:50:58, 86.94s/it, loss=0.8279]Epoch 1 [Train]:   2%|▎         | 3/120 [04:04<2:35:47, 79.90s/it, loss=0.8279]Epoch 1 [Train]:   2%|▎         | 3/120 [04:53<2:35:47, 79.90s/it, loss=0.8522]Epoch 1 [Train]:   3%|▎         | 4/120 [04:53<2:10:57, 67.74s/it, loss=0.8522]Epoch 1 [Train]:   3%|▎         | 4/120 [05:54<2:10:57, 67.74s/it, loss=0.8156]Epoch 1 [Train]:   4%|▍         | 5/120 [05:54<2:05:04, 65.25s/it, loss=0.8156]Epoch 1 [Train]:   4%|▍         | 5/120 [07:01<2:05:04, 65.25s/it, loss=0.8442]Epoch 1 [Train]:   5%|▌         | 6/120 [07:01<2:05:13, 65.91s/it, loss=0.8442]Epoch 1 [Train]:   5%|▌         | 6/120 [07:46<2:05:13, 65.91s/it, loss=0.8328]Epoch 1 [Train]:   6%|▌         | 7/120 [07:46<1:51:05, 58.99s/it, loss=0.8328]Epoch 1 [Train]:   6%|▌         | 7/120 [08:33<1:51:05, 58.99s/it, loss=0.8308]Epoch 1 [Train]:   7%|▋         | 8/120 [08:33<1:43:00, 55.18s/it, loss=0.8308]Epoch 1 [Train]:   7%|▋         | 8/120 [10:02<1:43:00, 55.18s/it, loss=0.8321]Epoch 1 [Train]:   8%|▊         | 9/120 [10:02<2:01:18, 65.57s/it, loss=0.8321]Epoch 1 [Train]:   8%|▊         | 9/120 [10:53<2:01:18, 65.57s/it, loss=0.8162]Epoch 1 [Train]:   8%|▊         | 10/120 [10:53<1:52:01, 61.10s/it, loss=0.8162]

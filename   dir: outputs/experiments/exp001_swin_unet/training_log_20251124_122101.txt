@@ -1,0 +1,4 @@
+/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/models/architectures/tiny_swin.py:548: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+  assert height == self.image_size and width == self.image_size, \
+/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/models/architectures/tiny_swin.py:279: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+  assert num_tokens == height * width, \

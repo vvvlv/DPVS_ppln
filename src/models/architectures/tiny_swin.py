@@ -10,8 +10,6 @@ Original Swin-Unet implementation:
   https://github.com/HuCaoFighting/Swin-Unet/blob/main/networks/swin_transformer_unet_skip_expand_decoder_sys.py
 """
 
-# TODO: add normalization layers
-
 import torch.nn as nn
 import torch
 
@@ -146,19 +144,36 @@ def window_partition(image_masks, window_size):
     windows = windows.view(-1, window_size, window_size, channels)
     return windows
 
+# def window_reverse(windows, window_size, height, width):
+#     # (num_windows * batch_size)
+#     total_num_windows = windows.shape[0] 
+#     # windows_per_image = (height // window_size) * (width // window_size)
+#     # batch_size = total_num_windows // windows_per_image
+#     windows_per_image = (height * width / window_size / window_size)
+#     batch_size = int(total_num_windows / windows_per_image)
+#     # Shape: (batch size, num_windows_h, num_windows_w, window_size, window_size, channel (-1 taken from original window))
+#     x = windows.view(
+#         batch_size,
+#         height // window_size, width // window_size,
+#         window_size,
+#         window_size, 
+#         -1,
+#     )
+#     x = x.permute(0, 1, 3, 2, 4, 5).contiguous()
+#     x = x.view(batch_size, height, width, -1)
+#     return x
+
 def window_reverse(windows, window_size, height, width):
-    # (num_windows * batch_size)
-    total_num_windows = windows.shape[0] 
-    # windows_per_image = (height // window_size) * (width // window_size)
-    # batch_size = total_num_windows // windows_per_image
-    windows_per_image = (height * width / window_size / window_size)
-    batch_size = int(total_num_windows / windows_per_image)
-    # Shape: (batch size, num_windows_h, num_windows_w, window_size, window_size, channel (-1 taken from original window))
+    total_num_windows = windows.shape[0]
+    num_windows_h = height // window_size
+    num_windows_w = width // window_size
+    windows_per_image = num_windows_h * num_windows_w
+    batch_size = total_num_windows // windows_per_image
+
     x = windows.view(
         batch_size,
-        height // window_size, width // window_size,
-        window_size,
-        window_size, 
+        num_windows_h, num_windows_w,
+        window_size, window_size,
         -1,
     )
     x = x.permute(0, 1, 3, 2, 4, 5).contiguous()
