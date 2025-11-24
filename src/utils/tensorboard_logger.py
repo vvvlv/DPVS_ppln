@@ -353,6 +353,31 @@ def get_default_layer_names(model_type: str) -> List[str]:
             'dict_module.conv3',
             'dict_module.conv4',
             'dict_module.conv5'
+        ],
+        'TinySwinUNet': [
+            # patch embedding
+            'patch_embed',
+
+            # first block of each encoder stage
+            'encoder_layers.0.0',
+            'encoder_layers.1.0',
+            'encoder_layers.2.0',
+            'encoder_layers.3.0',
+
+            # patch merging layers (downsampling between stages)
+            'patch_merging_layers.0',
+            'patch_merging_layers.1',
+            'patch_merging_layers.2',
+
+            # upsampling stages
+            'upsampling_layers.0',
+            'upsampling_layers.1',
+            'upsampling_layers.2',
+
+            # first block of each decoder stage
+            'decoder_layers.0.0',
+            'decoder_layers.1.0',
+            'decoder_layers.2.0',
         ]
     }
     

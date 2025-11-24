@@ -83,4 +83,4 @@ debug:
   profile_training_step: true       # Profile an actual training step (CUDA only)
 
 seed: 42
-device: "cuda" 
+device: "mps" 

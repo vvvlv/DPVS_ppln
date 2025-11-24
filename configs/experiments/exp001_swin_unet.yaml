@@ -1,0 +1,84 @@
+name: "exp001_swin_unet"
+description: "Tiny Swin UNet for FIVES vessel segmentation"
+tags: ["tinyswinunet", "swin", "transformer", "segmentation"]
+
+dataset: "configs/datasets/fives_512x512_rgb.yaml"
+
+data:
+  batch_size: 1
+  num_workers: 1
+  pin_memory: true
+
+  augmentation:
+    enabled: false
+
+  preprocessing:
+    normalize: true
+    pad_to_multiple: 32
+
+model:
+  type: "TinySwinUNet"
+  in_channels: 3
+  out_channels: 1 
+  image_size: [512, 512]
+  patch_size: 4
+  embedding_dim: 48
+  depths: [2, 2, 2, 2]
+  att_head_num: [3, 6, 12, 24]
+  window_size: 8
+  mlp_ratio: 4.0
+  final_activation: "sigmoid"
+
+training:
+  epochs: 20
+
+  optimizer:
+    type: "adam"
+    learning_rate: 0.0001
+    weight_decay: 0.0001
+
+  scheduler:
+    type: "cosine"
+    min_lr: 0.000001
+
+  loss:
+    type: "dice"
+    smooth: 0.000001
+
+  metrics:
+    - "dice"
+    - "iou"
+
+  mixed_precision: false
+  gradient_clip: 1.0
+
+  validation:
+    frequency: 1
+
+  early_stopping:
+    enabled: true
+    patience: 5
+    monitor: "val_dice"
+    mode: "max"
+
+  checkpoint:
+    save_best: true
+    save_last: true
+    monitor: "val_dice"
+    mode: "max"
+
+logging:
+  tensorboard: true
+  log_images: false
+  image_log_frequency: 1
+
+  log_activations: false
+  activation_log_frequency: 1
+  activation_layers: "auto"
+
+output:
+  dir: "outputs/experiments/exp001_swin_unet"
+  save_predictions: true
+
+seed: 42
+device: "mps"
