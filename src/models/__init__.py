@@ -18,6 +18,7 @@ from .architectures.unet_kernel7 import UNetKernel7
 from .architectures.roinet import RoiNet
 from .architectures.transunet import TransUNet
 from .architectures.transroinet import TransRoiNet
+from .architectures.tiny_swin import TinySwinUNet
 
 
 def create_model(config: dict):
