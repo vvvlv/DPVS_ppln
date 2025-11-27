@@ -1,11 +1,11 @@
-name: "exp008_tinyswin_reg_dice"
+name: "exp008_tinyswin_reg_dice_patch2_embeddingDim64"
 description: "TinySwinUNet with regularization (aug + dropout) trained using Dice loss"
 tags: ["exp008", "tinyswin", "transformer", "dice_loss", "regularized", "rgb"]
 
 dataset: "configs/datasets/fives512_g.yaml"
 
 output:
-  dir: "outputs/experiments/exp008_tinyswin_reg_dice"
+  dir: "outputs/experiments/exp008_tinyswin_reg_dice_patch2_embeddingDim64"
   save_predictions: true
 
 data:
@@ -31,8 +31,8 @@ model:
   out_channels: 1
   image_size: [512, 512]
   patch_size: 2
-  embedding_dim: 32
-  depths: [2, 2, 2, 2] # 2 2 2 2 
+  embedding_dim: 64
+  depths: [2, 2, 6, 2] # 2 2 2 2 
   att_head_num: [4, 8, 16, 32] # reduced from 4, 8, 16, 32
   window_size: 8
   mlp_ratio: 4.0

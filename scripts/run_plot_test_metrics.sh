@@ -59,18 +59,21 @@ cd "$ROOT_DIR"
 
 
 
-EXPERIMENTS=(
-  "exp003_unet_components_01_baseline"
-  "exp003_unet_components_13_simple_encoder_decoder"
-  "exp005_focal_components_01_baseline"
-  "exp005_focal_components_11_simple_encoder_decoder"
-  "exp006_focal_reg_01_baseline"
-  "exp006_focal_reg_11_simple_encoder_decoder"
-  "exp007_dice_reg_01_baseline_dropout_0.2"
-  "exp007_dice_reg_03_simple_encoder_decoder_dropout_0.2"
-)
+# EXPERIMENTS=(
+#   "exp003_unet_components_01_baseline"
+#   "exp003_unet_components_13_simple_encoder_decoder"
+#   "exp005_focal_components_01_baseline"
+#   "exp005_focal_components_11_simple_encoder_decoder"
+#   "exp006_focal_reg_01_baseline"
+#   "exp006_focal_reg_11_simple_encoder_decoder"
+#   "exp007_dice_reg_01_baseline_dropout_0.2"
+#   "exp007_dice_reg_03_simple_encoder_decoder_dropout_0.2"
+# )
+#
+# OUTPUT_DIR="outputs/plots/003_baseline_vs_singleConv_dice_focal_reg"
 
-OUTPUT_DIR="outputs/plots/003_baseline_vs_singleConv_dice_focal_reg"
+
+
 
 
   # "exp007_dice_reg_01_baseline_dropout_0.2"
@@ -106,6 +109,25 @@ OUTPUT_DIR="outputs/plots/003_baseline_vs_singleConv_dice_focal_reg"
 # )
 #
 # OUTPUT_DIR="outputs/plots/dice_vs_focal_tversky"
+
+
+
+
+
+
+
+EXPERIMENTS=(
+  "exp008_tinyswin_reg_dice"
+  "exp008_tinyswin_reg_dice_patch2_embeddingDim64"
+  "exp008_tinyswin_reg_focal_patch2_embeddingDim64"
+  "exp008_tinyswin_reg_focal_patch4_embeddingDim128"
+)
+
+OUTPUT_DIR="outputs/plots/exp008_tinyswin_compare"
+
+
+
+
 
 
 

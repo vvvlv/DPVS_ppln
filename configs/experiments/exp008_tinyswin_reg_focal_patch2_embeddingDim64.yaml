@@ -1,11 +1,11 @@
-name: "exp008_tinyswin_reg_focal"
+name: "exp008_tinyswin_reg_focal_patch2_embeddingDim64"
 description: "TinySwinUNet with regularization (aug + dropout) trained using Focal Tversky loss"
 tags: ["exp008", "tinyswin", "transformer", "focal_tversky", "regularized", "rgb"]
 
 dataset: "configs/datasets/fives512_g.yaml"
 
 output:
-  dir: "outputs/experiments/exp008_tinyswin_reg_focal"
+  dir: "outputs/experiments/exp008_tinyswin_reg_focal_patch2_embeddingDim64"
   save_predictions: true
 
 data:

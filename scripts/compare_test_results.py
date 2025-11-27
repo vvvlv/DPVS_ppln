@@ -28,7 +28,7 @@ from PIL import Image
 
 DEFAULT_TESTS_ROOT = Path("outputs/tests")
 DEFAULT_LABEL_ROOT = Path("data/FIVES512_G/test/label")
-DEFAULT_OUTPUT_DIR = Path("outputs/plots/experiment_comparisons")
+DEFAULT_OUTPUT_DIR = Path("outputs/comparison_plots")
 
 
 def parse_args() -> argparse.Namespace:
@@ -51,6 +51,13 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=None,
         help="Optional random seed when selecting a random sample.",
+    )
+    parser.add_argument(
+        "--display-names",
+        nargs="*",
+        default=None,
+        help="Optional short names for experiments (same length/order as experiments). "
+        "If omitted, experiment IDs are used as labels.",
     )
     parser.add_argument(
         "--tests-root",
@@ -83,6 +90,14 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=None,
         help="Optional path to save the figure (PNG). If omitted, display.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=DEFAULT_OUTPUT_DIR,
+        help="Base directory to save comparison figures when --output is not set "
+        f"(default: {DEFAULT_OUTPUT_DIR}). Each experiment set gets its own "
+        "subfolder inside this directory.",
     )
     parser.add_argument(
         "--title",
@@ -119,6 +134,14 @@ def resolve_label_root(args: argparse.Namespace) -> Path:
     return (DEFAULT_LABEL_ROOT).resolve()
 
 
+def resolve_image_root(label_root: Path) -> Path:
+    """
+    Infer image root from label root.
+    Assumes structure: <root>/test/label and <root>/test/image.
+    """
+    return label_root.parent / "image"
+
+
 def choose_sample(
     label_root: Path, explicit_sample: Optional[str], seed: Optional[int]
 ) -> str:
@@ -143,6 +166,16 @@ def load_mask(path: Path) -> np.ndarray:
         raise FileNotFoundError(path)
     with Image.open(path) as img:
         img = img.convert("L")
+        arr = np.asarray(img, dtype=np.float32) / 255.0
+    return arr
+
+
+def load_image(path: Path) -> np.ndarray:
+    if not path.exists():
+        raise FileNotFoundError(path)
+    # Always load as RGB for visualization; grayscale will be repeated across channels
+    with Image.open(path) as img:
+        img = img.convert("RGB")
         arr = np.asarray(img, dtype=np.float32) / 255.0
     return arr
 
@@ -185,42 +218,91 @@ def gather_predictions(
 
 
 def plot_results(
+    input_image: np.ndarray,
     gt_mask: np.ndarray,
     predictions: Dict[str, Dict[str, np.ndarray]],
+    row_labels: List[str],
     sample_name: str,
     output_path: Path | None,
     dpi: int,
     title: str | None = None,
-):
+) -> None:
+    """
+    Plot a grid where each row corresponds to an experiment:
+      [Input | Label | Prediction | TP/FP/FN overlay]
+    """
     experiments = list(predictions.keys())
-    num_cols = 1 + len(experiments) * 2
+    num_rows = len(experiments)
+    num_cols = 4
+
     fig, axes = plt.subplots(
-        1,
+        num_rows,
         num_cols,
-        figsize=(4 * num_cols, 4),
-        constrained_layout=True,
+        figsize=(3 * num_cols, 2.2 * num_rows),
+        constrained_layout=False,
     )
 
-    axes = np.atleast_1d(axes)
-    axes[0].imshow(gt_mask, cmap="gray")
-    axes[0].set_title("Ground Truth")
-    axes[0].axis("off")
+    axes = np.atleast_2d(axes)
 
-    for idx, exp in enumerate(experiments):
+    # Determine how to show input (RGB vs grayscale)
+    input_is_gray = input_image.ndim == 2 or input_image.shape[2] == 1
+
+    for row_idx, exp in enumerate(experiments):
+        row_axes = axes[row_idx]
+
+        # Input image
+        if input_is_gray:
+            row_axes[0].imshow(input_image.squeeze(), cmap="gray")
+        else:
+            row_axes[0].imshow(input_image)
+        if row_idx == 0:
+            row_axes[0].set_title("Input")
+        row_axes[0].axis("off")
+
+        # Ground truth
+        row_axes[1].imshow(gt_mask, cmap="gray")
+        if row_idx == 0:
+            row_axes[1].set_title("Label")
+        row_axes[1].axis("off")
+
+        # Prediction and overlay
         pred_raw = predictions[exp]["raw"]
         pred_bin = predictions[exp]["bin"]
         overlay = create_comparison_overlay(gt_mask.astype(bool), pred_bin)
 
-        col_pred = 1 + idx * 2
-        col_overlay = col_pred + 1
+        row_axes[2].imshow(pred_raw, cmap="gray")
+        if row_idx == 0:
+            row_axes[2].set_title("Prediction")
+        row_axes[2].axis("off")
 
-        axes[col_pred].imshow(pred_raw, cmap="gray")
-        axes[col_pred].set_title(f"{exp}\nPrediction")
-        axes[col_pred].axis("off")
+        row_axes[3].imshow(overlay)
+        if row_idx == 0:
+            row_axes[3].set_title("TP (white) / FP (yellow) / FN (red)")
+        row_axes[3].axis("off")
 
-        axes[col_overlay].imshow(overlay)
-        axes[col_overlay].set_title(f"{exp}\nTP/FP/FN")
-        axes[col_overlay].axis("off")
+    # Tighten layout: reduce margins and spacing between subplots
+    fig.subplots_adjust(
+        left=0.12,
+        right=0.98,
+        top=0.90,
+        bottom=0.06,
+        wspace=0.08,
+        hspace=0.12,
+    )
+
+    # Add experiment labels to the left of each row (vertical text)
+    for row_idx, label in enumerate(row_labels):
+        # y coordinate for center of this row in figure coordinates (top -> bottom)
+        y = 1.0 - (row_idx + 0.5) / num_rows
+        fig.text(
+            0.03,
+            y,
+            label,
+            va="center",
+            ha="left",
+            rotation=90,
+            fontsize=9,
+        )
 
     if title:
         fig.suptitle(title, fontsize=14)
@@ -237,23 +319,29 @@ def plot_results(
     plt.close(fig)
 
 
-def main() -> int:
-    args = parse_args()
-
-    if len(args.experiments) < 2:
-        print("Please provide at least two experiments to compare.", file=sys.stderr)
-        return 1
-
-    tests_root = args.tests_root.resolve()
-    label_root = resolve_label_root(args)
+def run_comparison(
+    experiments: List[str],
+    args: argparse.Namespace,
+    tests_root: Path,
+    label_root: Path,
+) -> None:
+    if len(experiments) < 2:
+        raise ValueError("Each comparison must have at least two experiments.")
 
     sample_name = choose_sample(label_root, args.sample, args.seed)
     gt_path = label_root / sample_name
     gt_mask = load_mask(gt_path)
     gt_bin = binarize(gt_mask, threshold=0.5).astype(bool)
 
+    image_root = resolve_image_root(label_root)
+    image_path = image_root / sample_name
+    input_image = load_image(image_path)
+
+    print(f"\nComparing experiments: {', '.join(experiments)}")
+    print(f"Sample chosen: {sample_name}")
+
     predictions = gather_predictions(
-        args.experiments,
+        experiments,
         tests_root,
         sample_name,
         args.threshold,
@@ -266,21 +354,40 @@ def main() -> int:
                 f"pred {pred['raw'].shape} vs gt {gt_mask.shape}"
             )
 
+    # Decide output path
     output_path = args.output
     if output_path is None:
-        output_path = (
-            DEFAULT_OUTPUT_DIR
-            / f"compare_{'_vs_'.join(args.experiments)}_{sample_name}"
-        ).with_suffix(".png")
+        # Group-specific folder based on experiment IDs
+        group_name = "_vs_".join(experiments)
+        base_dir = args.output_dir.resolve()
+        output_dir = base_dir / group_name
+        output_path = (output_dir / sample_name).with_suffix(".png")
+
+    # Determine row labels (display names) for each experiment
+    if args.display_names and len(args.display_names) == len(experiments):
+        row_labels = args.display_names
+    else:
+        row_labels = experiments
 
     plot_results(
-        gt_bin.astype(np.float32),
-        predictions,
-        sample_name,
+        input_image=input_image,
+        gt_mask=gt_bin.astype(np.float32),
+        predictions=predictions,
+        row_labels=row_labels,
+        sample_name=sample_name,
         output_path=output_path,
         dpi=args.dpi,
         title=args.title,
     )
+
+
+def main() -> int:
+    args = parse_args()
+
+    tests_root = args.tests_root.resolve()
+    label_root = resolve_label_root(args)
+
+    run_comparison(args.experiments, args, tests_root, label_root)
 
     return 0
 

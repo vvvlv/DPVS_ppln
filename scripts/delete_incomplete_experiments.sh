@@ -7,7 +7,7 @@ set -e
 
 # Configuration
 EXPERIMENTS_DIR="outputs/experiments"
-MIN_EPOCHS=4
+MIN_EPOCHS=5
 DRY_RUN=false
 
 # Parse arguments
