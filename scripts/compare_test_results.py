@@ -108,8 +108,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--dpi",
         type=int,
-        default=150,
-        help="Figure DPI when saving to file (default: %(default)s).",
+        default=250,
+        help="Figure DPI when saving to file (default: %(default)s). Higher DPI = higher resolution.",
     )
     return parser.parse_args()
 

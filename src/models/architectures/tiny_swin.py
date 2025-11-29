@@ -437,6 +437,7 @@ class TinySwinUNet(nn.Module):
         # multi layer perceptron ratio
         mlp_ratio = config.get("mlp_ratio", 4.0)
         dropout_rate = config.get("dropout", 0.0)
+        use_conv_stem = config.get("conv_stem", False)
 
         act_name = config.get("final_activation", None)
         if act_name == "sigmoid":
@@ -449,6 +450,18 @@ class TinySwinUNet(nn.Module):
         self.image_size = image_size
         self.patch_size = patch_size
         self.out_channels = out_channels
+
+        # Optional convolutional stem to denoise / normalize local contrast
+        # before tokenization. Useful when vessels have very different scales
+        # and contrast.
+        if use_conv_stem:
+            self.conv_stem = nn.Sequential(
+                nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(in_channels),
+                nn.ReLU(inplace=True),
+            )
+        else:
+            self.conv_stem = None
 
         # divide image into patches and embed them
         self.patch_embed = LinearEmbedding(
@@ -560,6 +573,9 @@ class TinySwinUNet(nn.Module):
         batch_size, input_channels, height, width = x.shape
         assert height == self.image_size and width == self.image_size, \
             f"Input image size ({height}x{width}) must match config image_size {self.image_size}."
+        # Optional conv stem for noise reduction / local contrast adaptation
+        if self.conv_stem is not None:
+            x = self.conv_stem(x)
 
         x = self.patch_embed(x)
 

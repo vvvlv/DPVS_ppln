@@ -29,9 +29,6 @@ DISPLAY_NAMES=(
   "Baseline_encoder_decoder_reg"
 )
 
-# Base output directory for comparison plots
-OUTPUT_DIR="outputs/comparison_plots/tinyswin_comparisons"
-
 # Optional fixed test sample (e.g. "178_N.png"); leave empty for random
 SAMPLE=""
 
@@ -43,6 +40,12 @@ SEED=""
 
 # Threshold for binarizing predictions
 THRESHOLD=0.5
+
+# Figure DPI (higher = larger image resolution)
+DPI=300
+
+# Base output directory for comparison plots
+OUTPUT_DIR="outputs/comparison_plots/tinyswin_comparisons"
 
 
 
@@ -58,6 +61,7 @@ fi
 ARGS=(
   --dataset-config "$DATASET_CONFIG"
   --threshold "$THRESHOLD"
+  --dpi "$DPI"
   --output-dir "$OUTPUT_DIR"
 )
 
