@@ -19,6 +19,7 @@ from .architectures.roinet import RoiNet
 from .architectures.transunet import TransUNet
 from .architectures.transroinet import TransRoiNet
 from .architectures.tiny_swin import TinySwinUNet
+from .architectures.aspp_att_unet import ASPPAttUNet
 
 
 def create_model(config: dict):

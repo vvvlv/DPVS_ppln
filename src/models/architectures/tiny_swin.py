@@ -556,6 +556,13 @@ class TinySwinUNet(nn.Module):
             bias=True,
         )
 
+        self.decoder_refine = nn.Sequential(
+            nn.Conv2d(dimensions[0], dimensions[0], kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(dimensions[0], dimensions[0], kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+        )
+
     def forward(self, x):
         batch_size, input_channels, height, width = x.shape
         assert height == self.image_size and width == self.image_size, \
@@ -603,6 +610,8 @@ class TinySwinUNet(nn.Module):
         # extract tokens to feature map
         # to (batch_size, channel, final_height, final_width)
         x = x.view(batch_size, final_height, final_width, channel).permute(0, 3, 1, 2) 
+
+        x = self.decoder_refine(x)
 
         # upsample feature map back to original image resolution
         x = torch.nn.functional.interpolate(

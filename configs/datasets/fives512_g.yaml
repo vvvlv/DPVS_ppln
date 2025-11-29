@@ -2,10 +2,10 @@ name: "FIVES512_GREEN"
 description: "FIVES dataset at 512x512 resolution with green channel only"
 
 paths:
-  root: "data/FIVES512_G"
-  train: "data/FIVES512_G/train"
-  val: "data/FIVES512_G/val"
-  test: "data/FIVES512_G/test"
+  root: "data/FIVES_512x512_green"
+  train: "data/FIVES_512x512_green/train"
+  val: "data/FIVES_512x512_green/val"
+  test: "data/FIVES_512x512_green/test"
 
 image_size: [512, 512]
 num_channels: 1
