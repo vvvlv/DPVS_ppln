@@ -4,7 +4,8 @@ from torch.utils.data import Dataset
 from pathlib import Path
 import cv2
 import numpy as np
-from typing import Dict
+from typing import Dict, Optional
+import random
 
 
 class VesselSegmentationDataset(Dataset):
@@ -18,7 +19,8 @@ class VesselSegmentationDataset(Dataset):
         mean: tuple,
         std: tuple,
         normalize: bool = True,
-        num_channels: int = 3
+        num_channels: int = 3,
+        augmentation: Optional[dict] = None
     ):
         """
         Initialize dataset.
@@ -39,6 +41,8 @@ class VesselSegmentationDataset(Dataset):
         self.std = np.array(std, dtype=np.float32)
         self.normalize = normalize
         self.num_channels = num_channels
+        self.augmentation = augmentation or {}
+        self.use_augmentation = self.augmentation.get('enabled', False) and self.split == 'train'
         
         # Load image and mask paths
         image_dir = self.root_dir / split / "image"
@@ -74,8 +78,14 @@ class VesselSegmentationDataset(Dataset):
             image = cv2.resize(image, self.image_size)
             mask = cv2.resize(mask, self.image_size)
         
-        # Convert to float and normalize
         image = image.astype(np.float32) / 255.0
+        mask = mask.astype(np.float32) / 255.0
+        
+        if self.use_augmentation:
+            image, mask = self._apply_augmentations(image, mask)
+            image = np.ascontiguousarray(image)
+            mask = np.ascontiguousarray(mask)
+        
         if self.normalize:
             image = (image - self.mean) / self.std
         
@@ -87,10 +97,40 @@ class VesselSegmentationDataset(Dataset):
             # Transpose for RGB
             image = image.transpose(2, 0, 1)
         
-        mask = mask[None, :, :].astype(np.float32) / 255.0
+        mask = mask[None, :, :]
         
         return {
             "image": image,
             "mask": mask,
             "name": self.image_paths[idx].name
         } 
+
+    def _apply_augmentations(self, image: np.ndarray, mask: np.ndarray):
+        aug = self.augmentation
+        # Horizontal flip
+        h_flip_prob = aug.get('horizontal_flip', 0.0)
+        if h_flip_prob > 0 and random.random() < h_flip_prob:
+            image = np.flip(image, axis=1)
+            mask = np.flip(mask, axis=1)
+        
+        # Vertical flip
+        v_flip_prob = aug.get('vertical_flip', 0.0)
+        if v_flip_prob > 0 and random.random() < v_flip_prob:
+            image = np.flip(image, axis=0)
+            mask = np.flip(mask, axis=0)
+        
+        # 90-degree rotations
+        if aug.get('rotation90', False):
+            rotation_prob = aug.get('rotation_prob', 0.5)
+            if random.random() < rotation_prob:
+                k = random.randint(1, 3)
+                image = np.rot90(image, k, axes=(0, 1))
+                mask = np.rot90(mask, k)
+        
+        # Random brightness adjustment
+        brightness = aug.get('brightness', 0.0)
+        if brightness > 0:
+            factor = 1.0 + random.uniform(-brightness, brightness)
+            image = np.clip(image * factor, 0.0, 1.0)
+        
+        return image, mask

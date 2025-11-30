@@ -353,7 +353,12 @@ def get_default_layer_names(model_type: str) -> List[str]:
             'dict_module.conv3',
             'dict_module.conv4',
             'dict_module.conv5'
-        ]
+        ],
+        'ASPP Attention UNet': [
+            'double_conv_1', 'double_conv_2', 'double_conv_3', 'double_conv_4',
+            'bottleneck',
+            'up_conv_1', 'up_conv_2', 'up_conv_3', 'up_conv_4'
+        ],
     }
     
     return defaults.get(model_type, [])
