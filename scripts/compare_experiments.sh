@@ -12,22 +12,51 @@ set -e
 # USER CONFIGURATION
 ########################################
 
+
 # List of experiments to compare (rows in the plot)
 EXPERIMENTS=(
-  exp008_tinyswin_reg_dice_patch2_embeddingDim64
-  exp008_tinyswin_reg_focal_patch2_embeddingDim64
-  exp008_tinyswin_reg_focal_patch4_embeddingDim128
-  exp006_focal_reg_11_simple_encoder_decoder
+  exp008_tinyswin_reg_dice_deep_noConvstem
+  exp008_tinyswin_reg_focal_deep_noConvstem
+  exp008_tinyswin_reg_dice_deep_convstem
+  exp008_tinyswin_reg_focal_deep_convstem
+  exp008_tinyswin_reg_dice_deep_convstem_k3_layer2
+  exp008_tinyswin_reg_focal_deep_convstem_k3_layer2
 )
 
 # Optional short display names (same length/order as EXPERIMENTS).
 # If empty or length mismatch, full experiment IDs will be shown.
 DISPLAY_NAMES=(
-  "Dice p2 d64"
-  "Focal p2 d64"
-  "Focal p4 d128"
-  "Baseline_encoder_decoder_reg"
+  "dice_deep_noConvstem"
+  "focal_deep_noConvstem"
+  "dice_deep_convstem"
+  "focal_deep_convstem"
+  "dice_deep_convstem_k3_layer2"
+  "focal_deep_convstem_k3_layer2"
 )
+
+
+# Base output directory for comparison plots
+OUTPUT_DIR="outputs/comparison_plots/deepTinySwin"
+
+# # List of experiments to compare (rows in the plot)
+# EXPERIMENTS=(
+#   exp008_tinyswin_reg_dice_patch2_embeddingDim64
+#   exp008_tinyswin_reg_focal_patch2_embeddingDim64
+#   exp008_tinyswin_reg_focal_patch4_embeddingDim128
+#   exp006_focal_reg_11_simple_encoder_decoder
+# )
+#
+# # Optional short display names (same length/order as EXPERIMENTS).
+# # If empty or length mismatch, full experiment IDs will be shown.
+# DISPLAY_NAMES=(
+#   "Dice p2 d64"
+#   "Focal p2 d64"
+#   "Focal p4 d128"
+#   "Baseline_encoder_decoder_reg"
+# )
+#
+# # Base output directory for comparison plots
+# OUTPUT_DIR="outputs/comparison_plots/tinyswin_comparisons"
 
 # Optional fixed test sample (e.g. "178_N.png"); leave empty for random
 SAMPLE=""
@@ -44,8 +73,7 @@ THRESHOLD=0.5
 # Figure DPI (higher = larger image resolution)
 DPI=300
 
-# Base output directory for comparison plots
-OUTPUT_DIR="outputs/comparison_plots/tinyswin_comparisons"
+
 
 
 

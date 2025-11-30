@@ -117,10 +117,19 @@ cd "$ROOT_DIR"
 
 
 EXPERIMENTS=(
+  "exp003_unet_components_01_baseline"
+  "exp007_dice_reg_01_baseline_dropout_0.2"
+  "exp006_focal_reg_11_simple_encoder_decoder"
   "exp008_tinyswin_reg_dice"
   "exp008_tinyswin_reg_dice_patch2_embeddingDim64"
   "exp008_tinyswin_reg_focal_patch2_embeddingDim64"
   "exp008_tinyswin_reg_focal_patch4_embeddingDim128"
+  "exp008_tinyswin_reg_dice_deep_noConvstem"
+  "exp008_tinyswin_reg_focal_deep_noConvstem"
+  "exp008_tinyswin_reg_dice_deep_convstem"
+  "exp008_tinyswin_reg_focal_deep_convstem"
+  "exp008_tinyswin_reg_dice_deep_convstem_k3_layer2"
+  "exp008_tinyswin_reg_focal_deep_convstem_k3_layer2"
 )
 
 OUTPUT_DIR="outputs/plots/exp008_tinyswin_compare"

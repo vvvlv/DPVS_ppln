@@ -49,3 +49,5 @@ tqdm
 triton
 typing_extensions
 Werkzeug
+einops
+timm

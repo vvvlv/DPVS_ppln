@@ -184,6 +184,40 @@ def binarize(mask: np.ndarray, threshold: float) -> np.ndarray:
     return (mask >= threshold).astype(np.uint8)
 
 
+def dice_coefficient_np(pred: np.ndarray, target: np.ndarray, smooth: float = 1e-6) -> float:
+    """Calculate Dice coefficient using numpy arrays."""
+    pred_bin = (pred >= 0.5).astype(np.float32)
+    pred_flat = pred_bin.flatten()
+    target_flat = target.flatten().astype(np.float32)
+    
+    intersection = (pred_flat * target_flat).sum()
+    dice = (2.0 * intersection + smooth) / (pred_flat.sum() + target_flat.sum() + smooth)
+    
+    return float(dice)
+
+
+def focal_tversky_score_np(
+    pred: np.ndarray,
+    target: np.ndarray,
+    alpha: float = 0.3,
+    beta: float = 0.7,
+    gamma: float = 1.333,
+    smooth: float = 1e-6,
+) -> float:
+    """Calculate Focal Tversky score using numpy arrays."""
+    pred_flat = pred.flatten().astype(np.float32)
+    target_flat = target.flatten().astype(np.float32)
+    
+    tp = (pred_flat * target_flat).sum()
+    fp = (pred_flat * (1.0 - target_flat)).sum()
+    fn = ((1.0 - pred_flat) * target_flat).sum()
+    
+    tversky = (tp + smooth) / (tp + alpha * fp + beta * fn + smooth)
+    focal_score = 1.0 - (1.0 - tversky) ** gamma
+    
+    return float(focal_score)
+
+
 def create_comparison_overlay(gt: np.ndarray, pred: np.ndarray) -> np.ndarray:
     # Colors: TP white, FP yellow, FN red, background black
     overlay = np.zeros((*gt.shape, 3), dtype=np.float32)
@@ -226,6 +260,7 @@ def plot_results(
     output_path: Path | None,
     dpi: int,
     title: str | None = None,
+    metrics: Dict[str, Dict[str, float]] | None = None,
 ) -> None:
     """
     Plot a grid where each row corresponds to an experiment:
@@ -238,7 +273,7 @@ def plot_results(
     fig, axes = plt.subplots(
         num_rows,
         num_cols,
-        figsize=(3 * num_cols, 2.2 * num_rows),
+        figsize=(3.5 * num_cols, 2.5 * num_rows),
         constrained_layout=False,
     )
 
@@ -277,30 +312,42 @@ def plot_results(
 
         row_axes[3].imshow(overlay)
         if row_idx == 0:
-            row_axes[3].set_title("TP (white) / FP (yellow) / FN (red)")
+            row_axes[3].set_title("TP (white)\nFP (yellow)\nFN (red)")
         row_axes[3].axis("off")
 
     # Tighten layout: reduce margins and spacing between subplots
+    # Increased left margin to accommodate horizontal labels on the left
+    # Reduced wspace and hspace to bring images closer together
     fig.subplots_adjust(
-        left=0.12,
+        left=0.20,
         right=0.98,
         top=0.90,
         bottom=0.06,
-        wspace=0.08,
-        hspace=0.12,
+        wspace=0.01,
+        hspace=0.01,
     )
 
-    # Add experiment labels to the left of each row (vertical text)
+    # Add experiment labels to the left of each row (horizontal text)
     for row_idx, label in enumerate(row_labels):
         # y coordinate for center of this row in figure coordinates (top -> bottom)
-        y = 1.0 - (row_idx + 0.5) / num_rows
+        y_center = 1.0 - (row_idx + 0.5) / num_rows
+        
+        # Build label text with metrics if available
+        exp = experiments[row_idx]
+        label_text = label
+        if metrics and exp in metrics:
+            dice_val = metrics[exp].get("dice", 0.0)
+            focal_tversky_val = metrics[exp].get("focal_tversky", 0.0)
+            label_text = f"{label} \n - Dice: {dice_val:.3f} \n - FT: {focal_tversky_val:.3f}"
+        
+        # Position text on the left, centered vertically for each row
         fig.text(
-            0.03,
-            y,
-            label,
+            0.02,
+            y_center,
+            label_text,
             va="center",
             ha="left",
-            rotation=90,
+            rotation=0,
             fontsize=9,
         )
 
@@ -354,11 +401,22 @@ def run_comparison(
                 f"pred {pred['raw'].shape} vs gt {gt_mask.shape}"
             )
 
+    # Calculate metrics for each experiment
+    metrics: Dict[str, Dict[str, float]] = {}
+    for exp, pred in predictions.items():
+        dice_val = dice_coefficient_np(pred["raw"], gt_mask)
+        focal_tversky_val = focal_tversky_score_np(pred["raw"], gt_mask)
+        metrics[exp] = {
+            "dice": dice_val,
+            "focal_tversky": focal_tversky_val,
+        }
+        print(f"{exp}: Dice={dice_val:.4f}, Focal Tversky={focal_tversky_val:.4f}")
+
     # Decide output path
     output_path = args.output
     if output_path is None:
         # Group-specific folder based on experiment IDs
-        group_name = "_vs_".join(experiments)
+        group_name = "plot"
         base_dir = args.output_dir.resolve()
         output_dir = base_dir / group_name
         output_path = (output_dir / sample_name).with_suffix(".png")
@@ -378,6 +436,7 @@ def run_comparison(
         output_path=output_path,
         dpi=args.dpi,
         title=args.title,
+        metrics=metrics,
     )
 
 

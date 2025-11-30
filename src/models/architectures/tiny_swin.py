@@ -438,6 +438,8 @@ class TinySwinUNet(nn.Module):
         mlp_ratio = config.get("mlp_ratio", 4.0)
         dropout_rate = config.get("dropout", 0.0)
         use_conv_stem = config.get("conv_stem", False)
+        conv_stem_kernel_size = config.get("conv_stem_kernel_size", 3)
+        conv_stem_layers = config.get("conv_stem_layers", 1)
 
         act_name = config.get("final_activation", None)
         if act_name == "sigmoid":
@@ -454,12 +456,24 @@ class TinySwinUNet(nn.Module):
         # Optional convolutional stem to denoise / normalize local contrast
         # before tokenization. Useful when vessels have very different scales
         # and contrast.
+        # Configurable kernel size and number of layers:
+        # - kernel_size: 3 (preserves fine vessels 1-2px), 5 (better noise reduction, may blur fine vessels)
+        # - layers: 1 (standard), 2+ (better noise reduction while preserving details)
         if use_conv_stem:
-            self.conv_stem = nn.Sequential(
-                nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=1, bias=False),
-                nn.BatchNorm2d(in_channels),
-                nn.ReLU(inplace=True),
-            )
+            if conv_stem_kernel_size % 2 == 0:
+                raise ValueError(f"conv_stem_kernel_size must be odd, got {conv_stem_kernel_size}")
+            if conv_stem_layers < 1:
+                raise ValueError(f"conv_stem_layers must be >= 1, got {conv_stem_layers}")
+            
+            padding = conv_stem_kernel_size // 2
+            stem_layers = []
+            for _ in range(conv_stem_layers):
+                stem_layers.extend([
+                    nn.Conv2d(in_channels, in_channels, kernel_size=conv_stem_kernel_size, padding=padding, bias=False),
+                    nn.BatchNorm2d(in_channels),
+                    nn.ReLU(inplace=True),
+                ])
+            self.conv_stem = nn.Sequential(*stem_layers)
         else:
             self.conv_stem = None
 
