@@ -1,0 +1,12 @@
+name: FIVES_256x256_green
+description: FIVES dataset at 256x256 resolution
+paths:
+  root: data/FIVES_256x256_green
+  train: data/FIVES_256x256_green/train
+  val: data/FIVES_256x256_green/val
+  test: data/FIVES_256x256_green/test
+image_size: [256, 256]
+num_channels: 1
+num_classes: 1
+mean: [0.5]
+std: [0.5]

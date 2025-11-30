@@ -2,10 +2,10 @@ name: "exp001_basic_unet2"
 description: "Basic UNet training"
 tags: ["baseline", "unet"]
 
-dataset: "configs/datasets/fives512_rgb.yaml"
+dataset: "configs/datasets/fives_512x512_green.yaml"
 
 output:
-  dir: "outputs/experiments/exp001_0_basic_unet"
+  dir: "outputs/experiments/exp001_basic_unet2"
   save_predictions: true
 
 data:
@@ -22,7 +22,7 @@ data:
 
 model:
   type: "UNet"
-  in_channels: 3
+  in_channels: 1
   out_channels: 1
   depths: [32, 64, 128, 256, 512]
   final_activation: "sigmoid"
@@ -45,8 +45,7 @@ training:
   
   metrics:
     - "dice"
-    - "focal_tversky"
-    - "auc"
+    - "iou"
   
   mixed_precision: false
   gradient_clip: 1.0
@@ -69,17 +68,14 @@ training:
 logging:
   tensorboard: true
   log_images: true
-  image_log_frequency: 1
+  image_log_frequency: 1              # Log images every N epochs (if log_images: true)
   
-  log_activations: true
-  activation_log_frequency: 1
-  activation_layers: "auto"
+  # Advanced logging options
+  log_activations: true              # Enable to monitor layer activations
+  activation_log_frequency: 1         # Log activations every N epochs (if log_activations: true)
+  activation_layers: "auto"           # "auto" for model defaults, list for custom, null for all
 
-debug:
-  profile_memory: false
-  detailed_memory: true
-  estimate_activations: true
-  profile_training_step: false
+
 
 seed: 42
 device: "cuda" 

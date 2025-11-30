@@ -2,7 +2,7 @@ name: "exp001_1_basic_unet_green"
 description: "Basic UNet training with green channel only (512x512)"
 tags: ["baseline", "unet", "green_channel"]
 
-dataset: "configs/datasets/fives512_g.yaml"
+dataset: "configs/datasets/fives_512x512_green.yaml"
 
 output:
   dir: "outputs/experiments/exp001_1_basic_unet_green"

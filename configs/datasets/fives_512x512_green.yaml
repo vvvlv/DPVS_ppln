@@ -1,0 +1,12 @@
+name: FIVES_512x512_green
+description: FIVES dataset at 512x512 resolution
+paths:
+  root: data/FIVES_512x512_green
+  train: data/FIVES_512x512_green/train
+  val: data/FIVES_512x512_green/val
+  test: data/FIVES_512x512_green/test
+image_size: [512, 512]
+num_channels: 1
+num_classes: 1
+mean: [0.5]
+std: [0.5]
