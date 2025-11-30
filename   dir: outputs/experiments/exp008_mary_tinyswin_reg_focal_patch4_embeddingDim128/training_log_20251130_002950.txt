@@ -1,0 +1,43 @@
+======================================================================
+Experiment: exp008_mary_tinyswin_reg_focal_patch4_embeddingDim128
+Description: TinySwinUNet with regularization (aug + dropout) trained using Focal Tversky loss
+======================================================================
+
+Output directory: outputs/experiments/exp008_mary_tinyswin_reg_focal_patch4_embeddingDim128
+
+Creating dataloaders...
+  Train samples: 480
+  Val samples: 120
+  Test samples: 200
+
+Creating model...
+  Model: TinySwinUNet
+  Parameters: 17,494,019
+  Device: mps
+TensorBoard logging enabled: outputs/experiments/exp008_mary_tinyswin_reg_focal_patch4_embeddingDim128/tensorboard
+  View logs with: tensorboard --logdir outputs/experiments/exp008_mary_tinyswin_reg_focal_patch4_embeddingDim128/tensorboard
+TensorBoard logger closed.
+Traceback (most recent call last):
+  File "/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/scripts/train.py", line 126, in <module>
+    main(args.config)
+    ~~~~^^^^^^^^^^^^^
+  File "/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/scripts/train.py", line 106, in main
+    trainer = Trainer(model, train_loader, val_loader, config, device, tb_logger)
+  File "/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/training/trainer.py", line 30, in __init__
+    self.optimizer = self._create_optimizer()
+                     ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/training/trainer.py", line 244, in _create_optimizer
+    return torch.optim.Adam(
+           ~~~~~~~~~~~~~~~~^
+        self.model.parameters(),
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+        lr=opt_cfg['learning_rate'],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        weight_decay=opt_cfg['weight_decay']
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/anaconda3/envs/dlvr_project/lib/python3.13/site-packages/torch/optim/adam.py", line 58, in __init__
+    if not 0.0 <= lr:
+           ^^^^^^^^^
+TypeError: '<=' not supported between instances of 'float' and 'str'

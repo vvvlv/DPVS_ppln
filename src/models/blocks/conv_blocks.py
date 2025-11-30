@@ -85,9 +85,8 @@ class AttentionUpSampling(nn.Module):
 
     def forward(self, x: Tensor, skip: Tensor = None) -> Tensor:
         x = self.up_conv(x)
-
-        if x.shape[-2:] != skip.shape[-2:]:
-            x = F.interpolate(x, size=skip.shape[-2:], mode="bilinear", align_corners=False)
+        
+        x = F.interpolate(x, size=skip.shape[-2:], mode="bilinear", align_corners=False)
 
         skip = self.attention_gate(skip, x) 
 

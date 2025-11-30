@@ -456,7 +456,10 @@ class TinySwinUNet(nn.Module):
         # and contrast.
         if use_conv_stem:
             self.conv_stem = nn.Sequential(
-                nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=1, bias=False),
+                nn.Conv2d(in_channels, 16, 3, padding=1, bias=False),
+                nn.BatchNorm2d(16),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(16, in_channels, 3, padding=1, bias=False),
                 nn.BatchNorm2d(in_channels),
                 nn.ReLU(inplace=True),
             )
@@ -474,8 +477,8 @@ class TinySwinUNet(nn.Module):
         self.num_layers = len(depths)
 
         # resolution stages
-        heights = [self.patch_embed.grid_size // (2 ** idx) for idx in range(self.num_layers)]
-        widths = [self.patch_embed.grid_size // (2 ** idx) for idx in range(self.num_layers)]
+        self.heights = [self.patch_embed.grid_size // (2 ** idx) for idx in range(self.num_layers)]
+        self.widths = [self.patch_embed.grid_size // (2 ** idx) for idx in range(self.num_layers)]
 
         # channel dimensions at different stages
         dimensions = [embedding_dim * (2 ** idx) for idx in range(self.num_layers)]
@@ -490,8 +493,8 @@ class TinySwinUNet(nn.Module):
         self.patch_merging_layers = nn.ModuleList()
 
         for layer_idx in range(self.num_layers):
-            height_layer = heights[layer_idx]
-            width_layer = widths[layer_idx]
+            height_layer = self.heights[layer_idx]
+            width_layer = self.widths[layer_idx]
             dimension_layer = dimensions[layer_idx]
             depth_layer = depths[layer_idx]
             att_heads_num_layer = att_head_num[layer_idx]
@@ -523,6 +526,7 @@ class TinySwinUNet(nn.Module):
         self.upsampling_layers = nn.ModuleList()
         self.concat_linear = nn.ModuleList()  
         self.decoder_layers = nn.ModuleList()
+        self.decoder_refine = nn.ModuleList()
 
         # -1 because of skip connection
         for layer_idx in range(self.num_layers - 1):
@@ -532,7 +536,7 @@ class TinySwinUNet(nn.Module):
             # +1 -> what we’re upsampling from
             self.upsampling_layers.append(
                 PatchExpand(
-                    patch_resolution=(heights[depth_idx + 1], widths[depth_idx + 1]),
+                    patch_resolution=(self.heights[depth_idx + 1], self.widths[depth_idx + 1]),
                     dimension=dimensions[depth_idx + 1],
                 )
             )
@@ -551,7 +555,7 @@ class TinySwinUNet(nn.Module):
                 decoder_blocks.append(
                     TinySwinTransformerBlock(
                         dimensions=dimensions[depth_idx],
-                        patch_resolution=(heights[depth_idx], widths[depth_idx]),
+                        patch_resolution=(self.heights[depth_idx], self.widths[depth_idx]),
                         att_heads_num_layer=att_head_num[depth_idx],
                         window_size=window_size,
                         shift_size=shift_size,
@@ -561,6 +565,15 @@ class TinySwinUNet(nn.Module):
                 )
             self.decoder_layers.append(decoder_blocks)
 
+            self.decoder_refine.append(
+                nn.Sequential(
+                    nn.Conv2d(dimensions[depth_idx], dimensions[depth_idx], 3, padding=1),
+                    nn.ReLU(inplace=True),
+                    nn.Conv2d(dimensions[depth_idx], dimensions[depth_idx], 3, padding=1),
+                    nn.ReLU(inplace=True),
+                )
+            )
+
         # tokens to segmentation layer
         self.final_layer = nn.Conv2d(
             in_channels=dimensions[0],
@@ -569,20 +582,13 @@ class TinySwinUNet(nn.Module):
             bias=True,
         )
 
-        self.decoder_refine = nn.Sequential(
-            nn.Conv2d(dimensions[0], dimensions[0], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(dimensions[0], dimensions[0], kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-        )
-
     def forward(self, x):
         batch_size, input_channels, height, width = x.shape
         assert height == self.image_size and width == self.image_size, \
             f"Input image size ({height}x{width}) must match config image_size {self.image_size}."
         # Optional conv stem for noise reduction / local contrast adaptation
         if self.conv_stem is not None:
-            x = self.conv_stem(x)
+            x = self.conv_stem(x) + x
 
         x = self.patch_embed(x)
 
@@ -616,9 +622,15 @@ class TinySwinUNet(nn.Module):
             for block in self.decoder_layers[layer_idx]:
                 x = block(x)
 
+            batch_size, num_tokens, channel = x.shape
+            h, w = self.heights[skip_layer], self.widths[skip_layer]
+            x_feat = x.view(batch_size, h, w, channel).permute(0, 3, 1, 2)
+            x_feat = self.decoder_refine[layer_idx](x_feat)
+            x = x_feat.permute(0, 2, 3, 1).reshape(batch_size, num_tokens, channel)
+
         # final layer
-        final_height = self.patch_embed.grid_size
-        final_width = final_height
+        final_height = height_tokens
+        final_width = width_tokens
         batch_size, patch_resolution, channel = x.shape
         assert patch_resolution == final_height * final_width, \
                 f"Final token length {patch_resolution} != {final_height}*{final_width}"
@@ -626,8 +638,6 @@ class TinySwinUNet(nn.Module):
         # extract tokens to feature map
         # to (batch_size, channel, final_height, final_width)
         x = x.view(batch_size, final_height, final_width, channel).permute(0, 3, 1, 2) 
-
-        x = self.decoder_refine(x)
 
         # upsample feature map back to original image resolution
         x = torch.nn.functional.interpolate(

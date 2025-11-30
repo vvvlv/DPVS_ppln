@@ -5,7 +5,7 @@ tags: ["tinyswinunet", "swin", "transformer", "segmentation"]
 dataset: "configs/datasets/fives_512x512_rgb.yaml"
 
 data:
-  batch_size: 2
+  batch_size: 1
   num_workers: 1
   pin_memory: false
 
@@ -24,7 +24,7 @@ model:
   patch_size: 2
   embedding_dim: 64
   depths: [2, 2, 2, 2]
-  att_head_num: [4, 8, 16, 32]
+  att_head_num: [2, 4, 8, 8]
   window_size: 8
   mlp_ratio: 4.0
   final_activation: "sigmoid"

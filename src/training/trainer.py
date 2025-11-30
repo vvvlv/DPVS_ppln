@@ -6,6 +6,8 @@ import yaml
 from pathlib import Path
 from tqdm import tqdm
 from typing import Dict, List, Optional
+import numpy as np
+from skimage import morphology
 
 from utils.tensorboard_logger import (
     ActivationLogger, 
@@ -72,6 +74,7 @@ class Trainer:
                 self.tb_logger.log_model_graph(model, input_size, str(device))
             except Exception as e:
                 print(f"Warning: Could not log model graph: {e}")
+                
     
     def train(self):
         """Main training loop."""
@@ -226,9 +229,11 @@ class Trainer:
                 loss = self.criterion(outputs, masks)
                 
                 total_loss += loss.item()
+
+                outputs_pp = self._postprocess_logits(outputs)
                 
                 for metric_name, metric_fn in self.metrics.items():
-                    metric_sums[metric_name] += metric_fn(outputs, masks)
+                    metric_sums[metric_name] += metric_fn(outputs_pp, masks)
         
         n = len(self.val_loader)
         return {
@@ -353,6 +358,7 @@ class Trainer:
             
             # Run inference
             outputs = self.model(images)
+            outputs_pp = self._postprocess_logits(outputs)
             
             # Log images (limit to 4 samples)
             dataset_config = self.config.get('dataset', {})
@@ -363,7 +369,7 @@ class Trainer:
                 tag='val/predictions',
                 images=images,
                 masks_gt=masks,
-                masks_pred=outputs,
+                masks_pred=outputs_pp,
                 step=epoch,
                 max_images=4,
                 denormalize=True,
@@ -435,3 +441,26 @@ class Trainer:
             
             # Clear activations to free memory
             self.activation_logger.clear_activations()
+
+    def _postprocess_logits(self, outputs: torch.Tensor,
+                            threshold: float = 0.7,
+                            min_size: int = 20) -> torch.Tensor:
+        """
+        Binarize and clean predictions with simple morphology.
+        Assumes outputs are probabilities in [0,1] with shape [B,1,H,W].
+        """
+        probs = outputs
+
+        probs_np = probs.detach().cpu().numpy()
+        cleaned = np.zeros_like(probs_np, dtype=np.float32)
+
+        for b in range(probs_np.shape[0]):
+            # threshold
+            mask = probs_np[b, 0] >= threshold
+
+            # remove tiny blobs
+            mask = morphology.remove_small_objects(mask, min_size=min_size)
+
+            cleaned[b, 0] = mask.astype(np.float32)
+
+        return torch.from_numpy(cleaned).to(outputs.device)
