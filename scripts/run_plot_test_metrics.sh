@@ -114,29 +114,51 @@ cd "$ROOT_DIR"
 
 
 
-
-
 EXPERIMENTS=(
-  "exp003_unet_components_01_baseline"
-  "exp007_dice_reg_01_baseline_dropout_0.2"
-  "exp006_focal_reg_11_simple_encoder_decoder"
-  "exp008_tinyswin_reg_dice"
   "exp008_tinyswin_reg_dice_patch2_embeddingDim64"
   "exp008_tinyswin_reg_focal_patch2_embeddingDim64"
+  "exp008_tinyswin_reg_dice_patch4_embeddingDim128"
   "exp008_tinyswin_reg_focal_patch4_embeddingDim128"
-  "exp008_tinyswin_reg_dice_deep_noConvstem"
-  "exp008_tinyswin_reg_focal_deep_noConvstem"
-  "exp008_tinyswin_reg_dice_deep_convstem"
-  "exp008_tinyswin_reg_focal_deep_convstem"
-  "exp008_tinyswin_reg_dice_deep_convstem_k3_layer2"
-  "exp008_tinyswin_reg_focal_deep_convstem_k3_layer2"
 )
 
-OUTPUT_DIR="outputs/plots/exp008_tinyswin_compare"
+OUTPUT_DIR="outputs/plots/004_initial_tinyswins_experiments"
 
 
+# EXPERIMENTS=(
+#   "exp008_tinyswin_reg_focal_patch2_embeddingDim64"
+#   "exp008_tinyswin_reg_dice_deep_noConvstem"
+#   "exp008_tinyswin_reg_focal_deep_noConvstem"
+#   "exp008_tinyswin_reg_dice_deep_convstem"
+#   "exp008_tinyswin_reg_focal_deep_convstem"
+# )
 
+# OUTPUT_DIR="outputs/plots/005_tinyswin_deep_experiments"
+# 
+# EXPERIMENTS=(
+#   "exp006_focal_reg_01_baseline"
+#   "exp006_focal_reg_11_simple_encoder_decoder"
+#   "exp008_tinyswin_reg_focal_deep_noConvstem"
+# )
+# 
+# OUTPUT_DIR="outputs/plots/006_baseline_vs_tinyswin_deep"
 
+# EXPERIMENTS=(
+#   "exp003_unet_components_01_baseline"
+#   "exp006_focal_reg_01_baseline"
+#   "exp007_dice_reg_01_baseline_dropout_0.2"
+#   "exp008_tinyswin_reg_dice"
+#   "exp008_tinyswin_reg_dice_patch2_embeddingDim64"
+#   "exp008_tinyswin_reg_focal_patch2_embeddingDim64"
+#   "exp008_tinyswin_reg_focal_patch4_embeddingDim128"
+#   "exp008_tinyswin_reg_dice_deep_noConvstem"
+#   "exp008_tinyswin_reg_focal_deep_noConvstem"
+#   "exp008_tinyswin_reg_dice_deep_convstem"
+#   "exp008_tinyswin_reg_focal_deep_convstem"
+#   "exp008_tinyswin_reg_dice_deep_convstem_k3_layer2"
+#   "exp008_tinyswin_reg_focal_deep_convstem_k3_layer2"
+# )
+#
+# OUTPUT_DIR="outputs/plots/004_baseline_vs_tinyswin"
 
 
 
