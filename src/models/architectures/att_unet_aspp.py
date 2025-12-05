@@ -1,12 +1,7 @@
-from ..blocks.conv_blocks import (
-    DownSampling,
-    UpSampling,
-    Bottleneck,
-    AttentionUpSampling,
-    ASPPBottleneck,
-)
+from ..blocks.conv_blocks import DownSampling
 import torch.nn as nn
 from ..registry import register_model
+from ..blocks.att_aspp_blocks import ASPPBottleneck, AttentionUpSampling
 
 @register_model('ASPP Attention UNet')
 class ASPPAttUNet(nn.Module):

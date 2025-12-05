@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/scripts/train.py", line 17, in <module>
+    from models import create_model
+  File "/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/models/__init__.py", line 22, in <module>
+    from .architectures.att_unet_aspp import ASPPAttUNet
+  File "/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/models/architectures/att_unet_aspp.py", line 1, in <module>
+    from ..blocks.conv_blocks import (
+    ...<5 lines>...
+    )
+ImportError: cannot import name 'AttentionUpSampling' from 'models.blocks.conv_blocks' (/Users/maria/Desktop/AU/FALL_2025_2026/DLVR/projects/FIVES_project/DPVS_ppln/src/models/blocks/conv_blocks.py)
