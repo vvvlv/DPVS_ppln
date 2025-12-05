@@ -766,59 +766,6 @@ outputs/tests/exp001_basic_unet/
 
 ---
 
-## Available Models
-
-### UNet
-Classic encoder-decoder architecture with skip connections:
-- Structure: 5-level pyramid with symmetric encoder-decoder
-- Building Block: DoubleConv (Conv + BN + ReLU × 2)
-- Default Depths: [32, 64, 128, 256, 512]
-- Parameters: ~7.8M
-- Best for: Standard segmentation tasks, baseline experiments
-
-### TransUNet
-Hybrid CNN-Transformer architecture for medical image segmentation:
-- Structure: CNN encoder → Transformer bottleneck → CNN decoder
-- Encoder: 4-level CNN with DoubleConv blocks
-- Bottleneck: Multi-head self-attention transformer for global context
-- Decoder: 3-level CNN with skip connections
-- Default Depths: [64, 128, 256, 512]
-- Transformer: 6 blocks, 8 heads, embedding dim 512
-- Parameters: ~40-50M (depends on transformer depth)
-- Key Features:
-  - Combines local feature extraction (CNN) with global context (Transformer)
-  - Patch-based attention mechanism captures long-range dependencies
-  - Skip connections preserve high-resolution details
-- Best for: Medical imaging tasks requiring global context understanding
-
-### RoiNet
-Advanced architecture with residual connections and deepened bottleneck:
-- Structure: 3-level encoder-decoder with residual blocks
-- Building Block: ResidualBlock with configurable kernel size
-- Default Depths: [32, 64, 128, 128, 64, 32]
-- Kernel Size: 9 (configurable, larger receptive field)
-- Bottleneck: Deepened with 2 additional residual blocks
-- Parameters: Varies with configuration
-- Best for: Complex features, better gradient flow via residuals
-
-### TransRoiNet 
-Advanced hybrid combining RoiNet's residuals with Transformer attention:
-- Structure: RoiNet encoder-decoder with Transformer-enhanced bottleneck
-- Encoder/Decoder: 3-level with ResidualBlocks (k_size=9)
-- Bottleneck: Residual → Transformer → Residual → Merge
-- Default Depths: [32, 64, 128, 128, 64, 32]
-- Transformer Config: 2 blocks, 8 heads (lighter than UTrans)
-- Parameters: ~35-40M (depends on configuration)
-- Key Features: 
-  - Residual connections for stable training
-  - Transformer captures vessel connectivity patterns
-  - Large receptive field from k_size=9
-- Best for: Complex segmentation requiring both local precision and global context
-
-### Using Different Models
-
-Just change the `model.type` in your experiment config:
-
 ```yaml
 # For UNet
 model:
@@ -979,162 +926,28 @@ debug:
 Before training starts, you'll see:
 
 ```
-📊 GPU Memory (Device: cuda:0):
+ GPU Memory (Device: cuda:0):
   Total VRAM:      23.65 GB
   Currently Used:  245.67 MB
   Available:       23.41 GB
 
-🧠 Model Memory Breakdown:
+ Model Memory Breakdown:
   Parameters:      93.52 MB
   Buffers:         0.12 MB
   Total Model:     93.64 MB
 
-⚙️  Training Memory Estimates:
+  Training Memory Estimates:
   Gradients:       93.52 MB
   Optimizer (ADAM): 187.04 MB
   Activations:     1.23 GB
 
-💾 Total Estimated Training Memory: 1.59 GB
+ Total Estimated Training Memory: 1.59 GB
    (~6.7% of available VRAM)
 
-📋 Per-Layer Memory Breakdown (Top 15):
+ Per-Layer Memory Breakdown (Top 15):
   Layer Name                               Parameters      Memory      
   ---------------------------------------- --------------- ------------
   encoder4                                 8,388,608       32.00 MB
   encoder3                                 2,097,152       8.00 MB
   ...
 ```
-
-### Example Usage
-
-Enable in any experiment config (e.g., `exp001_basic_unet.yaml`):
-
-```yaml
-debug:
-  profile_memory: true              # Enable profiling
-  detailed_memory: true              # Show per-layer breakdown
-  estimate_activations: true         # Estimate activation memory
-  profile_training_step: false       # Optional: profile training step (CUDA only)
-```
-
-Then run normally:
-
-```bash
-python scripts/train.py --config configs/experiments/exp001_basic_unet.yaml
-```
-
-### Use Cases
-
-1. **Out of Memory Errors**: See exactly what's consuming VRAM
-2. **Optimize Batch Size**: Calculate maximum safe batch size
-3. **Model Comparison**: Compare memory usage across architectures
-4. **Layer Analysis**: Identify memory-heavy layers
-
-### Tips
-
-- Set `profile_memory: true` when debugging memory issues
-- Use `profile_training_step: true` (CUDA only) to see memory at each training stage
-- Set to `false` once debugging is complete to skip overhead
-
----
-
-## Troubleshooting
-
-### "No images found in..."
-- Check data path in `configs/datasets/fives_512.yaml`
-- Ensure images are `.png` format
-- Verify folder structure matches expected layout
-
-### CUDA Out of Memory
-- **First**: Enable memory profiling to see what's using VRAM:
-  ```yaml
-  debug:
-    profile_memory: true
-  ```
-- Reduce `batch_size` in experiment config
-- Reduce model size: `depths: [16, 32, 64, 128, 256]`
-- Close other GPU applications
-- Consider using gradient accumulation or mixed precision
-
-### Import Errors
-- Run from codebase root directory
-- Verify all `__init__.py` files exist
-- Check dependencies are installed: `pip list`
-
-### Training Not Improving
-- Check learning rate (try 0.001 or 0.0001)
-- Verify data is normalized correctly
-- Check loss function is appropriate for your task
-- Increase number of epochs
-
-### Early Stopping Too Soon
-- Increase patience in config:
-  ```yaml
-  early_stopping:
-    patience: 10  # or higher
-  ```
-- Check if validation set is representative
-
----
-
-## Expected Performance
-
-With default configuration on FIVES512:
-
-### UNet (exp001_basic_unet)
-| Metric | Value |
-|--------|-------|
-| Training Time | ~1-2 min/epoch (NVIDIA T4) |
-| GPU Memory | ~4-6 GB |
-| Model Parameters | ~7.8M |
-| Expected Dice | 0.70-0.80+ after 10-20 epochs |
-| Expected IoU | 0.60-0.70+ after 10-20 epochs |
-
-### RoiNet (exp002_roinet)
-| Metric | Value |
-|--------|-------|
-| Training Time | ~2-3 min/epoch (NVIDIA T4) |
-| GPU Memory | ~6-8 GB |
-| Model Parameters | Varies with config |
-| Test Dice (epoch 8) | 0.8259 |
-| Test IoU (epoch 8) | 0.7169 |
-| Validation Dice (epoch 8) | 0.8721 |
-
-
----
-
-## Key Design Decisions
-
-1. Configuration-Driven: All parameters in YAML files, no hardcoded values
-2. Modular: Each component is independent and replaceable
-3. Reproducible: Seed management, config saving, deterministic operations
-4. Extensible: Easy to add new models, losses, metrics via registry pattern
-5. User-Friendly: Shell scripts for common operations, clear error messages
-6. Multiple Architectures: Support for both classic (UNet) and advanced (RoiNet, UTrans, TransRoiNet) models
-7. Real-time Visualization: Integrated TensorBoard for training monitoring and experiment comparison
-
----
-
-## Citation
-
-If you use this pipeline, please cite the FIVES dataset:
-
-```bibtex
-@article{fives2022,
-  title={FIVES: A Fundus Image Dataset for Vessel Segmentation},
-  journal={Scientific Data},
-  year={2022}
-}
-```
-
----
-
-## Support
-
-For issues, questions, or contributions:
-1. Check this README and INSTALL.md first
-2. Review your configuration files
-3. Check error messages carefully
-4. Verify data paths and formats
-
----
