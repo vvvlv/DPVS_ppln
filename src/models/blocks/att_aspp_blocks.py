@@ -4,7 +4,7 @@ from typing import Any
 from torch import Tensor
 import torch
 from torchvision.models.segmentation.deeplabv3 import ASPP
-from conv_blocks import DoubleConv
+from ..blocks.conv_blocks import DoubleConv
 
 
 class AttentionGate(nn.Module):
